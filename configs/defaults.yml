@@ -1,0 +1,66 @@
+#general:
+labels:
+  - filtered
+version_tag: cascades_v0.6_CscdSBU_PreBDT
+model_tag: ""
+
+#model:
+model_definer: "define_model"
+hidden_activation: relu
+init_layer: 64
+init_layer: 64
+final_layer: 64 
+max_layers: 10
+layer_repeat: 2
+unit_step: 1
+learning_rate: 0.001
+
+seed: 125
+dropout: 0.2
+#optimizer:
+optimizer: adam
+loss: binary_crossentropy
+
+#training:
+batch_size: 8192  # 2**13
+n_epoch: 20
+#others:
+filter_names:
+  - HighQFilter_17
+  - LowUp_13
+  - MESEFilter_15
+  - MonopoleFilter_16
+  - MoonFilter_13
+  - OnlineL2Filter_17
+  - SunFilter_13
+  - VEF_13
+  - CascadeFilter_13
+  - MuonFilter_13
+  - HESEFilter_15
+  - FilterMinBias_13
+  - ScintMinBias_16
+
+cascade_keys:
+  - cscdSBU_Qtot_HLC
+  - CoreRemoval_CascadeLlhVertexFit_0
+  - CoreRemoval_CascadeLlhVertexFit_1
+  - CscdL3_CascadeLlhVertexFit
+  - cscdSBU_MonopodFit4
+  - cscdSBU_Qtot_HLC_IC
+  - cscdSBU_I3XYScale_noDC
+  - cscdSBU_MonopodFit4_noDC_Delay_ice
+  - cscdSBU_VetoMaxDomChargeOM
+  - cscdSBU_MonopodFit4_noDC
+  - cscdSBU_LE_bdt_cascade
+  - cscdSBU_LE_bdt_hybrid
+  - cscdSBU_LE_bdt_input
+  - cscdSBU_LE_bdt_track
+  - cscdSBU_LE_tags
+
+#data:
+data_columns:
+  - multiplicity
+  - n_photons
+  - filtered
+  - triggered
+  - Level3

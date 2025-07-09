@@ -1,0 +1,98 @@
+batch_size: 8192
+class_weight: {}
+clipnorm: 1.0
+dropout: 0.8
+ema_momentum: 0.999
+features:
+  - log_rho
+  - log_z
+  - log_length
+  - log_energy
+  - interaction_height
+  - cos_zenith
+  - pdg_map
+  - depth
+  - cos_theta
+  - multiplicity
+  - mu_log_energy_max
+  - mu_log_energy_mean
+  - mu_log_energy_std
+  - mu_radius_mean
+  - singleness
+  - mu_leading_energy_fraction
+  - mu_bundle_log_energy
+final_layer: 4
+fname_test: 
+  #- /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0000000-0000999/combined_preproc/combined_preproc_0000000-0000999_01_of_50.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0000000-0000999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0000000-0000999.hdf5
+fname_train:
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0001000-0001999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0001000-0001999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0002000-0002999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0002000-0002999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0003000-0003999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0003000-0003999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0004000-0004999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0004000-0004999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0005000-0005999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0005000-0005999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0006000-0006999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0006000-0006999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0007000-0007999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0007000-0007999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0008000-0008999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0008000-0008999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0009000-0009999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0009000-0009999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0010000-0010999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0010000-0010999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0011000-0011999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0011000-0011999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0012000-0012999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0012000-0012999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0013000-0013999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0013000-0013999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0014000-0014999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0014000-0014999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0015000-0015999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0015000-0015999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0016000-0016999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0016000-0016999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0017000-0017999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0017000-0017999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0018000-0018999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0018000-0018999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0019000-0019999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0019000-0019999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0020000-0020999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0020000-0020999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0021000-0021999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0021000-0021999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0022000-0022999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0022000-0022999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0023000-0023999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0023000-0023999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0024000-0024999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0024000-0024999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0025000-0025999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0025000-0025999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0026000-0026999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0026000-0026999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0027000-0027999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0027000-0027999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0028000-0028999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0028000-0028999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0029000-0029999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0029000-0029999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0030000-0030999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0030000-0030999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0031000-0031999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0031000-0031999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0032000-0032999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0032000-0032999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0033000-0033999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0033000-0033999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0034000-0034999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0034000-0034999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0035000-0035999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0035000-0035999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0036000-0036999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0036000-0036999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0037000-0037999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0037000-0037999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0038000-0038999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0038000-0038999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0039000-0039999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0039000-0039999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0040000-0040999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0040000-0040999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0041000-0041999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0041000-0041999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0042000-0042999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0042000-0042999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0043000-0043999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0043000-0043999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0044000-0044999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0044000-0044999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0045000-0045999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0045000-0045999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0046000-0046999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0046000-0046999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0047000-0047999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0047000-0047999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0048000-0048999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0048000-0048999.hdf5
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0049000-0049999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0049000-0049999.hdf5
+ 
+hidden_activation: tanh
+init_layer: 192
+labels:
+  - Level3
+layer_repeat: 3
+learning_rate: decay_linear
+clip_norm: 0.01
+max_depth: 100
+max_layers: 30
+model_dir_base: /data/user/navidkrad/i3kiss/models/
+model_name: gen2filt_test_config
+n_epoch: 20
+optimizer: adamw
+seed: 125
+selection: n_photons>0
+unit_step: 4
+version_tag: cascades_v0.1_L3
+weight_decay: 0.0005
+ema_overwrite_frequency: True
+weights: weights
