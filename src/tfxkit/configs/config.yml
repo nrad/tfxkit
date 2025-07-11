@@ -1,0 +1,49 @@
+batch_size: 8192
+class_weight: {}
+clipnorm: 1.0
+dropout: 0.8
+ema_momentum: 0.999
+features:
+  - log_rho
+  - log_z
+  - log_length
+  - log_energy
+  - interaction_height
+  - cos_zenith
+  - pdg_map
+  - depth
+  - cos_theta
+  - multiplicity
+  - mu_log_energy_max
+  - mu_log_energy_mean
+  - mu_log_energy_std
+  - mu_radius_mean
+  - singleness
+  - mu_leading_energy_fraction
+  - mu_bundle_log_energy
+final_layer: 4
+fname_test: 
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0000000-0000999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0000000-0000999.hdf5
+fname_train:
+  - /data/user/navidkrad/hdf/cascades_v0.1_L3/sim/IceCube/2020/CORSIKA-in-ice/20904/0001000-0001999/combined_preproc_presel_hasphotons_balanced_by_Level3/combined_preproc_presel_hasphotons_balanced_by_Level3_0001000-0001999.hdf5
+ 
+hidden_activation: tanh
+init_layer: 192
+labels:
+  - Level3
+layer_repeat: 3
+learning_rate: decay_linear
+clip_norm: 0.01
+max_depth: 100
+max_layers: 30
+model_dir_base: /data/user/navidkrad/i3kiss/models/
+model_name: gen2filt_test_config
+n_epoch: 20
+optimizer: adamw
+seed: 125
+selection: n_photons>0
+unit_step: 4
+version_tag: cascades_v0.1_L3
+weight_decay: 0.0005
+ema_overwrite_frequency: True
+weights: weights
