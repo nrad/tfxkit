@@ -1,19 +1,43 @@
 import tensorflow as tf
+import pandas as pd
+import numpy as np
 import logging
 import keras
 
 
 logger = logging.getLogger(__name__)
 
+def get_weight_column(df, weights=None):
+    """
+    Returns the sample weight column from the DataFrame.
+    If weights is None, returns a Series of ones with the same index as df.
+    """
+    if weights is None:
+        return pd.Series(np.ones(len(df)), index=df.index)
+    elif isinstance(weights, str):
+        return df[weights]
+    elif isinstance(weights, (list, tuple)):
+        return df[weights].product(axis=1)
+    else:
+        raise ValueError(f"Invalid weights type: {type(weights)}")
+
 def xy_maker(
     df, 
     features, 
-    labels ):
+    labels,
+    weight=None):
     """
     Simple xy_maker function that extracts features and labels from a DataFrame."""
     X = df[features]
     y = df[labels]
-    return X, y
+
+    sample_weight = get_weight_column(df, weight)
+    # if weight is not None:
+    #     sample_weight = df[weight]
+    # else:
+    #     sample_weight = pd.Series(np.ones(len(X)), index=X.index)
+
+    return X, y, sample_weight
 
 def define_mlp(
     n_features,

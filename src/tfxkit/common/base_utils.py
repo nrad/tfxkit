@@ -1,17 +1,11 @@
-import warnings
-import yaml
-import glob
+import logging
 from copy import deepcopy
-import re
-import pickle
-import os
-import pylab as plt
-import inspect
-import uuid
-import itertools
 from pprint import pprint
 import numpy as np
 import pandas as pd
+
+logger = logging.getLogger(__name__)
+
 
 ##
 ## Utility functions for data selection and HDF5 file reading
@@ -172,3 +166,33 @@ def read_hdf(
     if postselection:
         df = df.query(postselection)
     return df
+
+
+##
+## Utility functions
+##
+
+
+def import_function(fn_path, strict=True):
+    import importlib
+    """
+    Load a function from a given module path.
+    Parameters:
+    - fn_path: str, the full path to the function in the format 'module.submodule.function_name'.
+    Returns:
+    - function: the loaded function.
+    Raises:
+    - ValueError: if the function is not found or is not callable.
+    """
+    
+    module_path, fn_name = fn_path.rsplit(".", 1)
+    module = importlib.import_module(module_path)
+    if not hasattr(module, fn_name):
+        raise ValueError(f"Function {fn_name} not found in module {module_path}")
+    fn = getattr(module, fn_name)
+    if not hasattr(fn, "__call__") and strict:
+        logger.debug(f"Loaded function {fn_name} from {module_path} but it's not callable:\n{fn}")
+        raise ValueError(f"{fn_name} is not a callable function")
+    logger.info(f"Loaded function {fn_name} from {module_path}")
+
+    return fn
