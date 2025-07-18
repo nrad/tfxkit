@@ -1,9 +1,10 @@
 import logging
 import pandas as pd
-from tfxkit.common.base_utils import read_hdfs
+from tfxkit.common.base_utils import read_hdfs, import_function
 import tfxkit.common.tf_utils as tf_utils
 
 logger = logging.getLogger(__name__)
+
 
 class DataManager:
     """
@@ -13,11 +14,11 @@ class DataManager:
 
     def __init__(self, config):
         self.config = config
-        self.train_df = None
-        self.test_df = None
+        self.data_config = self.config.data
+        self.sample_weight_column = self.config.get("sample_weight", None)
         self.__add_cached_df()
 
-    def load_df(self, files=[]):
+    def _load_df(self, files=[]):
         """Load raw data into pandas DataFrames from HDF5 files."""
         logger.info(f"Loading data from files: {files}")
         df = read_hdfs(
@@ -32,14 +33,23 @@ class DataManager:
         dynamically add properties by caching the values
         using the appropriate functions
         for example this adds a property df_train which just gets attribute _df_train if it exists
-        or calls load_df and sets it if it doesn't exist.
+        or calls _load_df and sets it if it doesn't exist.
         """
 
-        for attr_name in ["X_test", "X_train", "y_test", "y_train"]:
+        for attr_name in [
+            "X_test",
+            "X_train",
+            "y_test",
+            "y_train",
+            "sample_weight_train",
+            "sample_weight_test",
+        ]:
+
             def func(self, attr_name=attr_name):
                 if not hasattr(self, f"_{attr_name}"):
                     self.prep_Xy()
                 return getattr(self, f"_{attr_name}")
+
             setattr(cls, attr_name, property(func))
 
         for test_train in ["test", "train"]:
@@ -47,46 +57,68 @@ class DataManager:
             df_attr_name = f"df_{test_train}"
             logger.debug(f"Accessing {df_attr_name} with files_key: {test_train}_files")
 
-
             def func(self, test_train=test_train):
                 files_key = f"{test_train}_files"
-                files = self.config[files_key]
+                files = self.data_config[files_key]
                 if not hasattr(self, f"_{df_attr_name}"):
-                    attr = self.load_df(files)
+                    attr = self._load_df(files)
                     # assert False, f"{df_attr_name} is not set correctly {test_train}"
                     setattr(self, f"_{df_attr_name}", attr)
                 return getattr(self, f"_{df_attr_name}")
 
-            # assert False, f"{df_attr_name} is not set correctly"
-            # print(f"DEBUG: Adding property {df_attr_name} to DataManager")
             logger.debug(f"Adding property {df_attr_name} to DataManager")
             setattr(cls, df_attr_name, property(func))
 
     def prep_Xy(self):
 
         if hasattr(self, "_X_train"):
-            return self._X_train, self._X_test, self._y_train, self._y_test
+            return
 
-        elif hasattr(self, "xy_maker"):
-            Xy_train = self.xy_maker(self, self.df_train, self.config)
-            Xy_test = self.xy_maker(self, self.df_test, self.config)
-            X_train, X_test, y_train, y_test = (
-                Xy_train["x"],
-                Xy_test["x"],
-                Xy_train["y"],
-                Xy_test["y"],
-            )
+        xy_maker = import_function(self.data_config.xy_maker)
+        logger.info(f"Using xy_maker function: {xy_maker.__name__}")
 
+        train_weights_column = self.data_config.get("weights_column", None)
+        test_weights_column = train_weights_column
+        if not train_weights_column:
+            train_weights_column = self.data_config.get("train_weights_column", None)
+            test_weights_column = self.data_config.get("test_weights_column", None)
         else:
-            X_train, y_train = tf_utils.xy_maker(self.df_train, self.config.features, self.config.labels)
-            X_test, y_test = tf_utils.xy_maker(self.df_test, self.config.features, self.config.labels)
+            if getattr(self.data_config, "train_weights_column") or getattr(
+                self.data_config, "test_weights_column"
+            ):
+                logger.warning(
+                    "Both 'weights' and 'train_weights_column'/'test_weights_column' are set. "
+                    "Using 'weights' for both train and test sets."
+                )
+                raise ValueError(
+                    "Please specify either 'weights' or 'train_weights_column'/'test_weights_column', not both."
+                )
+        logger.info(
+            f"Using weights column: {train_weights_column} for training and {test_weights_column} for testing."
+        )
+        X_train, y_train, sample_weight_train = xy_maker(
+            self.df_train,
+            self.data_config.features,
+            self.data_config.labels,
+            train_weights_column,
+        )
+        X_test, y_test, sample_weight_test = xy_maker(
+            self.df_test,
+            self.data_config.features,
+            self.data_config.labels,
+            test_weights_column,
+        )
 
         self._X_train = X_train
         self._X_test = X_test
         self._y_train = y_train
         self._y_test = y_test
+        self._sample_weight_train = sample_weight_train
+        self._sample_weight_test = sample_weight_test
 
-        return X_train, X_test, y_train, y_test
+        # return X_train, X_test, y_train, y_test
+
+    
 
     def prepare_datasets(self):
         """Convert raw data into tf.data.Dataset objects."""
