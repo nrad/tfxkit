@@ -15,8 +15,11 @@ class ConfigLoader:
         overrides = sys.argv[1:]  # collect CLI overrides
         with initialize_config_module(config_module=config_module, version_base=None):
             cfg = compose(config_name=config_name, overrides=overrides)
-        cfg = OmegaConf.to_container(cfg, resolve=True)
+        # cfg = OmegaConf.to_container(cfg, resolve=True)
         return cfg
+
+    def cleanup(self):
+        self.config.model.parameters = OmegaConf.to_container(self.config.model.parameters, resolve=True)
 
     def print_config(self):
         """Print the configuration in YAML format."""
