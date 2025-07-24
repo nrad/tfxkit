@@ -19,6 +19,17 @@ def get_selection_dict(df, class_name="filtered"):
 
     return {f"{class_name}=={k}": round(min_count / v, 5) for k, v in counts.items()}
 
+def combine_weight_columns(df, weight_columns):
+    """
+    combine the weight columns into a single column
+    weight_columns can be a list of columns or a single column
+    """
+    if weight_columns is None:
+        return df.apply(lambda x: 1, axis=1)
+    weight_columns = (
+        [weight_columns] if isinstance(weight_columns, str) else weight_columns
+    )
+    return df[weight_columns].prod(axis=1)
 
 
 ##

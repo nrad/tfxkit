@@ -1,3 +1,8 @@
+from tfxkit.common import base_utils
+
+# import logging
+logger = base_utils.logging.getLogger(__name__)
+
 from plothist import (
     make_hist,
     plot_hist,
@@ -12,11 +17,6 @@ import boost_histogram as bh
 import numpy as np
 import pylab as plt
 import os
-from utils.generate_html import generate_html_from_dir, show_url
-
-from utils.base_utils import combine_weight_columns
-
-# import utils
 
 
 def get_bin_centers_and_widths(bins):
@@ -148,40 +148,6 @@ def get_sample_weights_from_reference(y, y_ref, normalize=True):
     return weights, weights_reference
 
 
-def calculate_sample_weights(y_1, y_2):
-    """
-    Calculate the sample weights for sample y_1 based on the population of sample y_2
-
-    Parameters:
-    y_1 (array-like): The sample for which weights need to be calculated.
-    y_2 (array-like): The population sample used to calculate the weights.
-
-    Returns:
-    tuple: A tuple containing the weights for y_1 and y_2 respectively.
-    """
-
-    y_1 = flatten(y_1)
-    y_2 = flatten(y_2)
-
-    n_1 = len(y_1)
-    n_ones_1 = np.count_nonzero(y_1)
-    n_zeros_1 = n_1 - n_ones_1
-
-    n_2 = len(y_2)
-    n_ones_2 = np.count_nonzero(y_2)
-    n_zeros_2 = n_2 - n_ones_2
-
-    weights_1 = np.ones(n_1) / n_1
-    weights_2 = np.ones(n_2)
-
-    print(n_ones_1)
-
-    weights_2[y_2 == 0] = (2 * n_zeros_1 / n_1) / n_2
-    weights_2[y_2 == 1] = (2 * n_ones_1 / n_1) / n_2
-
-    return weights_1, weights_2
-
-
 def plot_roc(fig_ax=None, truth=None, pred=None, weights=None, **plot_kwargs):
     import sklearn
 
@@ -256,22 +222,55 @@ def plot_prc(fig_ax=None, truth=None, pred=None, weights=None, **plot_kwargs):
     )
 
 
-def compare_test_train(
+def make_classwise_hist(
+    df, variable="pred", label_column="truth", weights=None, bins=50, range=(-0.1, 1.1)
+):
+    """
+    Get the histogram of predictions for a given variable in the DataFrame.
+
+    Parameters:
+    df (DataFrame): The DataFrame containing the predictions.
+    variable (str): The column name for the predictions.
+    label_column (str): The column name for the true labels.
+    weights (str or array): The column name for the weights or a array-like of weights.
+    bins (int): Number of bins for the histogram.
+    range (tuple): Range of values for the histogram.
+
+    Returns:
+    tuple: A tuple containing the histogram and bin edges.
+    """
+
+    truth = df[label_column]
+    cls0 = truth == 0
+    cls1 = truth == 1
+
+    weights = base_utils.combine_weight_columns(df, weights)
+
+    hist_kwargs = dict(bins=bins, range=range)
+    h0 = make_hist(df[variable][cls0], weights=weights[cls0], **hist_kwargs)
+    h1 = make_hist(df[variable][cls1], weights=weights[cls1], **hist_kwargs)
+
+    return h0, h1
+
+
+def plot_classwise_hist(
     df_test,
     df_train=None,
     variable="pred",
-    truth_var="truth",
-    weight_var=None,
+    label_column="truth",
+    weight_column=None,
+    weight_column_train=None,
     bins=50,
     range=(-0.1, 1.1),
     comparison="pull",
-    y_label="normalized events",
-    y_label_ratio=None,
-    y_scale=None,
-    x_label=None,
-    x_scale=None,
     plot_path=None,
-    reweight_train_to_test=True,
+    **kwargs,
+    # y_label="normalized events",
+    # y_label_ratio=None,
+    # y_scale=None,
+    # x_label=None,
+    # x_scale=None,
+    # reweight_train_to_test=True,
 ):
     """
     Compare a variable, for instance the prediction, in the test and train datasets.
@@ -284,68 +283,37 @@ def compare_test_train(
     colors = []
 
     n_test = len(df_test)
-    weights = np.ones(n_test) / n_test
 
-    truth = df_test[truth_var]
-    n_ones_test = np.count_nonzero(truth)
-    n_zeros_test = n_test - n_ones_test
-
-    sample_weights_test = combine_weight_columns(df_test, weight_var)
-    # sample_weights_test = df_test[weight_var] if weight_var else np.ones(len(df_test))
-    weights *= sample_weights_test
-
-    # Test plots
-    h1 = make_hist(
-        df_test[variable][truth == 1],
+    pred_kwargs = dict(
+        variable=variable,
+        label_column=label_column,
         bins=bins,
         range=range,
-        weights=weights[truth == 1],
     )
-    h2 = make_hist(
-        df_test[variable][truth == 0],
-        bins=bins,
-        range=range,
-        weights=weights[truth == 0],
+
+    htest0, htest1 = make_classwise_hist(
+        df_test,
+        weights=weight_column,
+        **pred_kwargs,
     )
-    hists += [h1, h2]
+
+    hists += [htest0, htest1]
     labels += ["test (pos)", "test (neg)"]
     colors += ["C0", "C1"]
 
     if include_train:
-        n_train = len(df_train)
-        truth = df_train[truth_var]
-
-        # n_ones_train  = np.count_nonzero(train)
-        # n_zeros_train = n_train - n_ones_train
-        if reweight_train_to_test:
-            weights_train, weights_test = get_sample_weights_from_reference(
-                df_train[truth_var], df_test[truth_var]
-            )
-        else:
-            weights_train = np.ones(n_train) / n_train
-
-        weights = weights_train
-        # sample_weights_train = (
-        #     df_train[weight_var] if weight_var else np.ones(len(df_train))
-        # )
-        sample_weights_train = combine_weight_columns(df_train, weight_var)
-        weights *= sample_weights_train
-
-        h3 = make_hist(
-            df_train[variable][df_train[truth_var] == 1],
-            bins=bins,
-            range=range,
-            weights=weights[truth == 1],
+        htrain0, htrain1 = make_classwise_hist(
+            df_train,
+            weights=(
+                weight_column if weight_column_train is None else weight_column_train
+            ),
+            **pred_kwargs,
         )
-        h4 = make_hist(
-            df_train[variable][df_train[truth_var] == 0],
-            bins=bins,
-            range=range,
-            weights=weights[truth == 0],
-        )
-        hists += [h3, h4]
+
+        hists += [htrain0, htrain1]
         labels += ["train (pos)", "train (neg)"]
         colors += ["C0", "C1"]
+
     hists_dict = dict(
         zip([l.replace(" (", "_").replace(")", "") for l in labels], hists)
     )
@@ -370,31 +338,65 @@ def compare_test_train(
                 h, label=labels[ihist], color=colors[ihist], ax=ax_main, **hist_kw
             )
 
-        plot_comparison(
-            h1, h3, ax=ax_comparison, comparison=comparison, color=colors[0], alpha=0.3
+        comp0 = plot_comparison(
+            htest0,
+            htrain0,
+            ax=ax_comparison,
+            comparison=comparison,
+            color=colors[0],
+            alpha=0.3,
         )
-        plot_comparison(
-            h2, h4, ax=ax_comparison, comparison=comparison, color=colors[1], alpha=0.3
+        comp1 = plot_comparison(
+            htest1,
+            htrain1,
+            ax=ax_comparison,
+            comparison=comparison,
+            color=colors[1],
+            alpha=0.3,
         )
+        hists_dict.update({"comp0": comp0, "comp1": comp1})
 
     else:
-        plot_comparison(
-            h1, h2, ax=ax_comparison, comparison=comparison, color=colors[1], alpha=0.3
+        comparison = plot_comparison(
+            htest0,
+            htest1,
+            ax=ax_comparison,
+            comparison=comparison,
+            color=colors[1],
+            alpha=0.3,
         )
+        hists_dict['comparison_test'] = comparison
 
         # fig.subplots_adjust(hspace=0.11)
 
     # print(a)
+    plot_kwargs = dict(
+        x_label=variable,
+        y_label="normalized events",
+        y_label_ratio="pull",
+        x_scale="linear",
+        y_scale="log",
+        y_label_size=15,
+        y_min_ratio=None,
+        y_max_ratio=None,
+    )
+    plot_kwargs.update(kwargs)
+    logger.debug(f"Plotting with kwargs: {plot_kwargs}")
 
-    y_label_size = 15
-    ax_main.set_ylabel(y_label, size=y_label_size)
-    if y_label_ratio:
-        ax_comparison.set_ylabel(y_label_ratio, size=y_label_size)
+    # y_label_size = 15
+    # ax_main.set_ylabel(y_label, size=y_label_size)
+    ax_main.set_ylabel(plot_kwargs["y_label"], size=plot_kwargs["y_label_size"])
+    if plot_kwargs.get("y_label_ratio"):
+        ax_comparison.set_ylabel(
+            plot_kwargs["y_label_ratio"], size=plot_kwargs["y_label_size"]
+        )
 
-    ax_comparison.set_xlabel(x_label if x_label else variable)
+    ax_comparison.set_xlabel(plot_kwargs["x_label"])
 
     ymin, ymax = ax_main.get_ylim()
     y_fact = 0.3 * ymax
+    y_scale = plot_kwargs.get("y_scale")
+    x_scale = plot_kwargs.get("x_scale")
     if y_scale:
         ax_main.set_yscale(y_scale)
         if y_scale == "log":
@@ -405,8 +407,11 @@ def compare_test_train(
         ax_main.set_xscale(x_scale)
 
     ax_main.legend(loc="upper left", ncols=2)
-
     ax_main.set_ylim(ymax=ymax + y_fact)
+
+    ax_comparison.set_ylim(
+        ymin=plot_kwargs.get("y_min_ratio"), ymax=plot_kwargs.get("y_max_ratio")
+    )
     fig.align_ylabels()
     if plot_path:
         savefig(fig, plot_path, formats=["png", "pdf"])
@@ -460,3 +465,6 @@ def savefig(
         if verbose:
             print("plot saved in: %s" % plot_path_)
         show_url(plot_path)
+
+
+# %%

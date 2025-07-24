@@ -222,3 +222,39 @@ def get_clipnorm(clipnorm):
         return None
     return clipnorm
 
+##
+## Plotting utilities
+##
+
+import matplotlib.pyplot as plt
+
+def fix_df_hist(df_hist):
+    # print(df_hist.columns)
+    for col in df_hist.columns:
+        # print(col, df_hist[col].dtype==object)
+        if df_hist[col].dtype == object:
+            expanded_col = pd.DataFrame(df_hist[col].tolist())
+            expanded_col.columns = [f"{col}_{i}" for i in expanded_col.columns]
+            df_hist.drop(col, axis=1, inplace=True)
+            df_hist = pd.concat([df_hist, expanded_col], axis=1)
+            # print(list(df_hist.columns))
+    return df_hist
+
+
+def plot_history(history, ylim=(0, 1), xlabel="Epoch", ylabel="", plot_kwargs={}, keys=None):
+    history = getattr(history, "history", history)
+    df_hist = pd.DataFrame(history)
+    df_hist = fix_df_hist(df_hist)
+
+    val_cols = [col for col in df_hist.columns if "val" in col]
+    cols = [c for c in df_hist.columns if c not in val_cols] 
+    print(f"Plotting columns: {cols} with validation columns: {val_cols}")
+
+    fig, ax = plt.subplots()
+
+    df_hist[cols].plot(xlabel=xlabel, ylabel=ylabel, ylim=ylim, ax=ax, **plot_kwargs)
+    if val_cols:
+        plt.gca().set_prop_cycle(None)
+        df_hist[val_cols].plot(style="--", ax=ax, **plot_kwargs)
+        ax.legend(ncol=2, loc="upper right")
+    return fig, ax, df_hist
