@@ -32,6 +32,8 @@ class Evaluator:
         df_train["pred"] = self.predict(x=X_train, **predict_kwargs)
         df_test["pred"] = self.predict(x=X_test, **predict_kwargs)
 
+
+
     def predict(self, **kwargs):
         """wrapper for model.predict"""
         predictions = self.model.predict(**kwargs)

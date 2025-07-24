@@ -61,6 +61,14 @@ class ModelBuilder:
         model = self.definer(**model_kwargs)
         
         return model
+    
+    def summary(self):
+        """Prints the model summary."""
+        if self.model is not None:
+            logger.info("Model Summary:")
+            self.model.summary(print_fn=logger.info)
+        else:
+            logger.warning("Model is not defined yet. Cannot print summary.")
 
     def compile(self, model=None, loss=None, metrics=None, **kwargs):
 

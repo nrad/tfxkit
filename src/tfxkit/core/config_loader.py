@@ -5,12 +5,18 @@ from omegaconf import OmegaConf, DictConfig
 
 logger = logging.getLogger(__name__)
 
+
 class ConfigLoader:
 
-    def __init__(self, config_name: str = "config", config_module: str = "tfxkit.configs"):
+    def __init__(
+        self, config_name: str = "config", config_module: str = "tfxkit.configs"
+    ):
         self.config = self.get_config(config_name, config_module)
+        # self._resolve_keys()
 
-    def get_config(self, config_name: str = "config", config_module: str = "tfxkit.configs") -> DictConfig:
+    def get_config(
+        self, config_name: str = "config", config_module: str = "tfxkit.configs"
+    ) -> DictConfig:
         """Load configuration using Hydra."""
         overrides = sys.argv[1:]  # collect CLI overrides
         with initialize_config_module(config_module=config_module, version_base=None):
@@ -18,14 +24,39 @@ class ConfigLoader:
         # cfg = OmegaConf.to_container(cfg, resolve=True)
         return cfg
 
-    def cleanup(self):
-        self.config.model.parameters = OmegaConf.to_container(self.config.model.parameters, resolve=True)
+    def _resolve_keys(self, keys=None):
+        # raise NotImplementedError(
+        #     "This method is not implemented yet. It should resolve specific keys in the configuration."
+        # )
+        keys_to_resolve = [
+            # "model.parameters",
+            "data.train_files",
+            "data.test_files",
+        ]
+        keys = keys if keys else keys_to_resolve
+        for key in keys:
+            logger.info(f"?? Resolving key: {key}")
+            logger.info(f"?? Resolving key: {type(self.config)}, {self.config}")
+            container = OmegaConf.to_container(
+                OmegaConf.select(self.config, key), resolve=True
+            )
+            OmegaConf.update(self.config, key, container)
+            # attr = OmegaConf.select(self.config, key)
+
+            # if key in self.config:
+            #     self.config[key] = OmegaConf.to_container(self.config[key], resolve=True)
+            # else:
+            #     logger.warning(f"Key '{key}' not found in config, skipping resolution.")
+        # Uncomment if you want to resolve the config to a plain dictionary
+        # self.config.model.parameters = OmegaConf.to_container(self.config.model.parameters, resolve=True)
+        # self.config.data.train_files = OmegaConf.to_container(self.config.data.train_files, resolve=True)
+        # self.config.data.test
 
     def print_config(self):
         """Print the configuration in YAML format."""
         # print(OmegaConf.to_yaml(self.config))
         logger.info("Configuration:")
-        logger.info("\n"+OmegaConf.to_yaml(self.config))
+        logger.info("\n" + OmegaConf.to_yaml(self.config))
 
 
 if __name__ == "__main__":

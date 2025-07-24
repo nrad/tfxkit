@@ -21,6 +21,11 @@ class DataManager:
     def _load_df(self, files=[]):
         """Load raw data into pandas DataFrames from HDF5 files."""
         logger.info(f"Loading data from files: {files}")
+        logger.info(f"?? Loading data from files: {type(files)}")
+        # files = files if isinstance(files, list) else [files]
+        files = [files] if isinstance(files, str) else files
+        logger.info(f"?? Loading data from files: {type(files)}")
+        logger.info(f"?? Loading data from files: {files}")
         df = read_hdfs(
             files,
             postselection=self.config.get("selection", None),
@@ -54,20 +59,23 @@ class DataManager:
 
         for test_train in ["test", "train"]:
 
-            df_attr_name = f"df_{test_train}"
-            logger.debug(f"Accessing {df_attr_name} with files_key: {test_train}_files")
-
             def func(self, test_train=test_train):
+                df_attr_name = f"df_{test_train}"
+                logger.debug(
+                    f"Accessing {df_attr_name} with files_key: {test_train}_files"
+                )
+
                 files_key = f"{test_train}_files"
                 files = self.data_config[files_key]
+                logger.debug(f"?? Loading {df_attr_name} from files: {files}")
                 if not hasattr(self, f"_{df_attr_name}"):
                     attr = self._load_df(files)
                     # assert False, f"{df_attr_name} is not set correctly {test_train}"
                     setattr(self, f"_{df_attr_name}", attr)
                 return getattr(self, f"_{df_attr_name}")
 
-            logger.debug(f"Adding property {df_attr_name} to DataManager")
-            setattr(cls, df_attr_name, property(func))
+            logger.debug(f"Adding property df_{attr_name} to DataManager")
+            setattr(cls, f"df_{test_train}", property(func))
 
     def prep_Xy(self):
 
@@ -117,8 +125,6 @@ class DataManager:
         self._sample_weight_test = sample_weight_test
 
         # return X_train, X_test, y_train, y_test
-
-    
 
     def prepare_datasets(self):
         """Convert raw data into tf.data.Dataset objects."""

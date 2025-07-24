@@ -21,11 +21,9 @@ class Trainer:
         """Train the model using the configured parameters and data."""
         # self.data.load_df()
 
-        batch_size = self.training_config.batch_size
-        n_epoch = self.training_config.n_epoch
         fit_kwargs = dict(
-            batch_size=batch_size,
-            epochs=n_epoch,
+            batch_size=self.training_config.batch_size,
+            epochs=self.training_config.epochs,
             verbose=1,
             x=self.data.X_train,
             y=self.data.y_train,
@@ -34,4 +32,5 @@ class Trainer:
 
         fit_kwargs.update(kwargs)
         logger.info(f"Training model with fit_kwargs: {fit_kwargs}")
-        self.model.fit(**fit_kwargs)
+        self.history = self.model.fit(**fit_kwargs)
+        return self.history
