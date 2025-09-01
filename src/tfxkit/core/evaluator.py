@@ -17,7 +17,7 @@ class Evaluator:
         self.model = model
         self.data = data_manager
 
-    def add_test_train_preds(self, pred_key="pred", **kwargs):
+    def add_test_train_preds(self, model=None, pred_key="pred", **kwargs):
         df_train = self.data.df_train
         df_test = self.data.df_test
         X_train = self.data.X_train
@@ -29,14 +29,15 @@ class Evaluator:
             ),
             verbose=1,
         )
-        df_train["pred"] = self.predict(x=X_train, **predict_kwargs)
-        df_test["pred"] = self.predict(x=X_test, **predict_kwargs)
+        df_train[pred_key] = self.predict(x=X_train, model=model, **predict_kwargs)
+        df_test[pred_key] = self.predict(x=X_test, model=model, **predict_kwargs)
 
 
 
-    def predict(self, **kwargs):
+    def predict(self, model=None, **kwargs):
         """wrapper for model.predict"""
-        predictions = self.model.predict(**kwargs)
+        model = self.model if model is None else model
+        predictions = model.predict(**kwargs)
         return predictions
 
     def evaluatee(self, **fit_kwargs):

@@ -24,203 +24,28 @@ def get_bin_centers_and_widths(bins):
     return (bins[:-1] + bins[1:]) / 2, np.diff(bins)
 
 
-def flatten(arr):
-    if hasattr(arr, "flatten"):
-        return arr.flatten()
-    elif hasattr(arr, "to_numpy"):
-        return arr.to_numpy().flatten()
-
-
-# def get_weights_from(y_train, y_test):
-#     """
-#     Calculate the sample weights
-
-#     Parameters:
-#     y_train (array-like): The target values for the training data.
-#     y_test (array-like): The target values for the testing data.
-
-#     Returns:
-#     tuple: A tuple containing the weights for the testing data and the weights for the training data.
-#     """
-
-#     y_test = flatten(y_test)
-#     y_train = flatten(y_train)
-
-#     n_test = len(y_test)
-#     n_ones_test = np.count_nonzero(y_test)
-#     n_zeros_test = n_test - n_ones_test
-
-#     n_train = len(y_train)
-#     n_ones_train = np.count_nonzero(y_train)
-#     n_zeros_train = n_train - n_ones_train
-
-#     weights_test = np.ones(n_test) / n_test
-#     weights_train = np.ones(n_train)
-
-#     print(n_ones_test)
-
-#     # (2 * n_test_one / n_test)
-
-#     weights_train[y_train == 0] = (2 * n_zeros_test / n_test) / n_train
-#     weights_train[y_train == 1] = (2 * n_ones_test / n_test) / n_train
-
-#     return weights_test, weights_train
-
-
-# def get_weights_from(y, y_reference, normalize=True):
-#     """
-#     Calculate the sample weights
-
-#     Parameters:
-#     y (array-like): The target values for the data.
-#     y_reference (array-like): The reference values used to calculate the weights.
-
-#     Returns:
-#     tuple: A tuple containing the weights for the data and the weights for the reference data.
-#     """
-#     n = len(y)
-#     n_ones = np.count_nonzero(y)
-#     n_zeros = n - n_ones
-
-#     n_ref = len(y_ref)
-#     n_ones_ref = np.count_nonzero(y_ref)
-#     n_zeros_ref = n_ref - n_ones_ref
-
-#     weights_reference = np.ones(n)
-#     weights = np.ones(n)
-
-#     weights[y == 0] = (2 * n_zeros_ref / n_ref)
-#     weights[y == 1] = (2 * n_ones_ref / n_ref)
-
-#     if normalize:
-#         weights /= n
-#         weights_reference /= n_ones_ref
-
-#     return weights, weights_reference
+# def flatten(arr):
+#     if hasattr(arr, "flatten"):
+#         return arr.flatten()
+#     elif hasattr(arr, "to_numpy"):
+#         return arr.to_numpy().flatten()
 
 
 def plt_subplots(**kwargs):
     # plt.subplots(nrows=2, ncols=1, figsize=(6, 5), sharex=True, gridspec_kw={'height_ratios': [3, 1], 'hspace':0.05})
     kwargs.setdefault("figsize", (6, 5))
     kwargs.setdefault("sharex", True)
-    kwargs.setdefault("height_ratios", [3, 1])
+    kwargs.setdefault("nrows", 2)
+    kwargs.setdefault("ncols", 1)
+    if kwargs['nrows'] == 2:
+        kwargs.setdefault("height_ratios", [3, 1])
     # kwargs.setdefault('hspace', 0.05)
     kwargs.setdefault("gridspec_kw", {})
     # kwargs['gridspec_kw'].setdefault('height_ratios', [3, 1])
     kwargs["gridspec_kw"].setdefault("hspace", 0.05)
-    kwargs.setdefault("nrows", 2)
-    kwargs.setdefault("ncols", 1)
     print(kwargs)
     fig, axs = plt.subplots(**kwargs)
     return fig, axs
-
-
-def get_sample_weights_from_reference(y, y_ref, normalize=True):
-    """
-    Calculate the sample weights for sample y based on the population of sample y_ref
-
-    Parameters:
-    y (array-like): The target values for the data.
-    y_reference (array-like): The reference values used to calculate the weights.
-
-    Returns:
-    tuple: A tuple containing the weights for the data and the weights for the reference data.
-    """
-
-    n = len(y)
-    n_ones = np.count_nonzero(y)
-    n_zeros = n - n_ones
-
-    n_ref = len(y_ref)
-    n_ones_ref = np.count_nonzero(y_ref)
-    n_zeros_ref = n_ref - n_ones_ref
-
-    weights_reference = np.ones(n_ref)
-    weights = np.ones(n)
-
-    weights[y == 0] = (n_zeros_ref / n_ref) * (n / n_zeros)
-    weights[y == 1] = (n_ones_ref / n_ref) * (n / n_ones)
-
-    if normalize:
-        weights /= n
-        weights_reference /= n_ref
-
-    return weights, weights_reference
-
-
-def plot_roc(fig_ax=None, truth=None, pred=None, weights=None, **plot_kwargs):
-    import sklearn
-
-    fig, ax = fig_ax if fig_ax else plt.subplots()
-
-    fpr, tpr, thresholds = sklearn.metrics.roc_curve(truth, pred, sample_weight=weights)
-    area = np.trapz(tpr, fpr)
-    area_label = "AUC=%s" % round(area, 3)
-
-    if "label" in plot_kwargs:
-        plot_kwargs["label"] += f" ({area_label})"
-    else:
-        plot_kwargs["label"] = f"{area_label}"
-
-    line = ax.plot(fpr, tpr, **plot_kwargs)
-    ax.set_ylabel("True Positive Rate")
-    ax.set_xlabel("False Positive Rate")
-    return dict(
-        fig=fig, ax=ax, fpr=fpr, tpr=tpr, thresholds=thresholds, area=area, line=line
-    )
-
-
-def plot_prc(fig_ax=None, truth=None, pred=None, weights=None, **plot_kwargs):
-    # write the docstring for this function
-    """
-    plot the precision-recall curve
-
-    Parameters
-    ----------
-    fig_ax : None or tuple
-        if None, a new figure and axis will be created, otherwise a tuple of (fig, ax) should be given
-    truth : array-like
-        the true labels
-    pred : array-like
-
-    Returns
-    -------
-    dict
-        a dictionary containing the figure, axis, precision, recall, thresholds, area, and line
-
-    """
-
-    import sklearn
-    from sklearn.metrics import precision_recall_curve
-
-    fig, ax = fig_ax if fig_ax else plt.subplots()
-
-    precision, recall, thresholds = sklearn.metrics.precision_recall_curve(
-        truth, pred, sample_weight=weights
-    )
-    ap = round(
-        sklearn.metrics.average_precision_score(truth, pred, sample_weight=weights), 3
-    )
-    ap_label = "Average Precision = %s" % round(ap, 3)
-
-    if "label" in plot_kwargs:
-        plot_kwargs["label"] += f" ({ap_label})"
-    else:
-        plot_kwargs["label"] = f"{ap_label}"
-
-    line = ax.plot(recall, precision, **plot_kwargs)
-    ax.set_ylabel("Precision")
-    ax.set_xlabel("Recall")
-    return dict(
-        fig=fig,
-        ax=ax,
-        precision=precision,
-        recall=recall,
-        thresholds=thresholds,
-        ap=ap,
-        line=line,
-    )
-
 
 def make_classwise_hist(
     df, variable="pred", label_column="truth", weights=None, bins=50, range=(-0.1, 1.1)
@@ -273,7 +98,7 @@ def plot_classwise_hist(
     # reweight_train_to_test=True,
 ):
     """
-    Compare a variable, for instance the prediction, in the test and train datasets.
+    Compare a variable, for instance the prediction, in the test and train datasets and for positive and negative classes
 
     """
     include_train = df_train is not None
@@ -416,6 +241,87 @@ def plot_classwise_hist(
     if plot_path:
         savefig(fig, plot_path, formats=["png", "pdf"])
     return dict(fig=fig, ax_main=ax_main, ax_comp=ax_comparison, **hists_dict)
+
+
+
+##
+## 
+##
+
+def plot_roc(fig_ax=None, truth=None, pred=None, weights=None, **plot_kwargs):
+    import sklearn.metrics
+
+    fig, ax = fig_ax if fig_ax else plt.subplots()
+
+    fpr, tpr, thresholds = sklearn.metrics.roc_curve(truth, pred, sample_weight=weights)
+    area = np.trapz(tpr, fpr)
+    area_label = "AUC=%s" % round(area, 3)
+
+    if "label" in plot_kwargs:
+        plot_kwargs["label"] += f" ({area_label})"
+    else:
+        plot_kwargs["label"] = f"{area_label}"
+
+    line = ax.plot(fpr, tpr, **plot_kwargs)
+    ax.set_ylabel("True Positive Rate")
+    ax.set_xlabel("False Positive Rate")
+    return dict(
+        fig=fig, ax=ax, fpr=fpr, tpr=tpr, thresholds=thresholds, area=area, line=line
+    )
+
+
+def plot_prc(fig_ax=None, truth=None, pred=None, weights=None, **plot_kwargs):
+    # write the docstring for this function
+    """
+    plot the precision-recall curve
+
+    Parameters
+    ----------
+    fig_ax : None or tuple
+        if None, a new figure and axis will be created, otherwise a tuple of (fig, ax) should be given
+    truth : array-like
+        the true labels
+    pred : array-like
+
+    Returns
+    -------
+    dict
+        a dictionary containing the figure, axis, precision, recall, thresholds, area, and line
+
+    """
+
+    import sklearn
+    from sklearn.metrics import precision_recall_curve
+
+    fig, ax = fig_ax if fig_ax else plt.subplots()
+
+    precision, recall, thresholds = sklearn.metrics.precision_recall_curve(
+        truth, pred, sample_weight=weights
+    )
+    ap = round(
+        sklearn.metrics.average_precision_score(truth, pred, sample_weight=weights), 3
+    )
+    ap_label = "Average Precision = %s" % round(ap, 3)
+
+    if "label" in plot_kwargs:
+        plot_kwargs["label"] += f" ({ap_label})"
+    else:
+        plot_kwargs["label"] = f"{ap_label}"
+
+    line = ax.plot(recall, precision, **plot_kwargs)
+    ax.set_ylabel("Precision")
+    ax.set_xlabel("Recall")
+    return dict(
+        fig=fig,
+        ax=ax,
+        precision=precision,
+        recall=recall,
+        thresholds=thresholds,
+        ap=ap,
+        line=line,
+    )
+
+
 
 
 def get_cumsum_frac(x, bins=50, range=(0, 1), density=True):

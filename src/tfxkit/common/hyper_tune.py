@@ -1,49 +1,11 @@
-from ModelFactory import ModelFactory
-
-
-import utils
-from utils import tf_utils
-
-
-# import tf_utils
-# from tensorflow import keras
-import keras
-import keras_tuner as kt
-
-
+from tfxkit.common import base_utils, tf_utils
 import os
 import time
 
 
-def get_cmd_arg(hp, args=None, return_dict=False, to_ignore=[]):
-    """
-    Generates command-line arguments from hyperparameters.
-    Args:
-        hp (dict or object): Hyperparameters, either as a dictionary or an object with an 'items' method.
-        args (Namespace, optional): Namespace object to check if hyperparameters exist. Defaults to None.
-        return_dict (bool, optional): If True, returns a dictionary of hyperparameters. Defaults to False.
-        to_ignore (list, optional): List of hyperparameters to ignore.
-    Returns:
-        str or dict: A string of command-line arguments or a dictionary of hyperparameters, depending on the value of return_dict.
-    """
-    vals = hp if hasattr(hp, "items") else hp.values
-    vals_clean = {}
-    new_names = {"optimizer_name": "optimizer"}
-    # to_ignore = ['use_ema']
-    for k, v in vals.items():
-        k = new_names.get(k, k)
-        if k.startswith("tuner/"):
-            continue
-        if k in to_ignore:
-            continue
-        if args != None and not hasattr(args, k):
-            print(f"skipping {k}={v} as is doesn't exist in the provided Namespace")
-            continue
-        vals_clean[k] = v
-    # to_remove = ['use_ema']
-    if return_dict:
-        return vals_clean
-    return " ".join([f"--{k} {v}" for k, v in vals_clean.items()])
+import keras
+import keras_tuner as kt
+
 
 
 class TimeStopping(keras.callbacks.Callback):
@@ -70,7 +32,6 @@ class TimeStopping(keras.callbacks.Callback):
                 print(
                     f"\nStopping training after {epoch+1} epochs due to time limit of {self.max_seconds} seconds."
                 )
-
 
 class ModelSizeMonitor(keras.callbacks.Callback):
     def __init__(self, min_layers=5, max_layers=30, max_params=500_000, verbose=0):
@@ -141,13 +102,6 @@ def model_builder_wrapper(mf, model_modifier=None, metrics=["accuracy"]):
             clipnorm=hp.Choice("clipnorm", values=[0.0, 0.5, 1.0, 5.0, 10.0]),
             use_ema=hp.Boolean("use_ema"),
         )
-        # hyper_params['learning_rate'] = tf_utils.get_learning_rate(hyper_params['learning_rate'])
-
-        # with hp.conditional_scope("use_ema", [True, False]):
-        #    if hyper_params['use_ema']:
-        #        ema_momentum = hp.Choice('ema_momentum', values=[0.9,0.99,0.999])
-        #    else:
-        #        ema_momentum = hp.Choice('ema_momentum', values=[None])
 
         ema_momentum = hp.Choice(
             "ema_momentum",
@@ -203,7 +157,7 @@ def evaluate_tuner(tuner, X, y, batch_size=8000, num_trials=10):
         eval_time = round(time.time() - start_time, 3)
         hp = hps[i]
         res.append(
-            dict(model=m, hp=hp, args=get_cmd_arg(hp), eval_time=eval_time, **di)
+            dict(model=m, hp=hp, eval_time=eval_time, **di)
         )
     return res
 

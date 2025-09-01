@@ -1,10 +1,18 @@
 import logging
 import pandas as pd
 from tfxkit.common.base_utils import read_hdfs, import_function
+from dataclasses import dataclass, field
 import tfxkit.common.tf_utils as tf_utils
+
 
 logger = logging.getLogger(__name__)
 
+@dataclass
+class DatasetSplit:
+    df: object = None
+    X: object = None
+    y: object = None
+    sample_weight: object = None
 
 class DataManager:
     """
@@ -20,12 +28,7 @@ class DataManager:
 
     def _load_df(self, files=[]):
         """Load raw data into pandas DataFrames from HDF5 files."""
-        logger.info(f"Loading data from files: {files}")
-        logger.info(f"?? Loading data from files: {type(files)}")
-        # files = files if isinstance(files, list) else [files]
         files = [files] if isinstance(files, str) else files
-        logger.info(f"?? Loading data from files: {type(files)}")
-        logger.info(f"?? Loading data from files: {files}")
         df = read_hdfs(
             files,
             postselection=self.config.get("selection", None),
@@ -123,6 +126,19 @@ class DataManager:
         self._y_test = y_test
         self._sample_weight_train = sample_weight_train
         self._sample_weight_test = sample_weight_test
+
+        self.train = DatasetSplit(
+            df=self.df_train,
+            X=X_train,
+            y=y_train,
+            sample_weight=sample_weight_train
+        )
+        self.test = DatasetSplit(
+            df=self.df_test,
+            X=X_test,
+            y=y_test,
+            sample_weight=sample_weight_test
+        )
 
         # return X_train, X_test, y_train, y_test
 

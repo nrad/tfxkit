@@ -34,7 +34,6 @@ class ModelBuilder:
         self.labels = self.data_config.labels
         self.n_labels = len(self.labels)
         self.model = self.define_model()
-        
 
     def _load_model_fn(self):
 
@@ -45,7 +44,7 @@ class ModelBuilder:
 
     def define_model(self, **kwargs):
         self._load_model_fn()
-        model_kwargs = self.model_parameters
+        model_kwargs = dict(**self.model_parameters)
         if kwargs:
             logger.debug(f"Updating model parameters with: {kwargs}")
             model_kwargs.update(kwargs)
@@ -59,9 +58,9 @@ class ModelBuilder:
             f"Defining model with: {self.definer.__name__} and args: {model_kwargs}"
         )
         model = self.definer(**model_kwargs)
-        
+
         return model
-    
+
     def summary(self):
         """Prints the model summary."""
         if self.model is not None:
@@ -76,13 +75,15 @@ class ModelBuilder:
         loss = self.loss if loss is None else loss
         metrics = self.metrics if metrics is None else metrics
 
-        optimizer_kwargs = self.optimizer_parameters
+        optimizer_kwargs = dict(**self.optimizer_parameters)
         optimizer_fn_name = self.optimizer_config.function
 
         if kwargs:
             logger.debug(f"Updating optimizer parameters with: {kwargs}")
             optimizer_kwargs.update(kwargs)
-        logger.info(f"Compiling model with optimizer: {optimizer_fn_name} and parameters: \n{optimizer_kwargs}")
+        logger.info(
+            f"Compiling model with optimizer: {optimizer_fn_name} and parameters: \n{optimizer_kwargs}"
+        )
 
         if "." in optimizer_fn_name:
             optimizer_fn = import_function(optimizer_fn_name)
