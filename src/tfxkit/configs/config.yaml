@@ -1,0 +1,32 @@
+doc: |
+  Configuration file for TFXKit experiments.
+
+  This file uses the Hydra framework to manage configurations.
+  Each section can be overridden by specifying command-line arguments
+  or by creating new configuration files in the appropriate directories.
+
+  The `defaults` section specifies the base configurations to use.
+  You can create custom configurations by adding new YAML files
+  in the `configs` directory and referencing them here.
+
+  Example usage:
+    python your_experiment_script.py model.custom_model=your_model_function optimizer.custom_optimizer=your_optimizer_function
+
+defaults:
+  - model: default_model
+  - optimizer: default_optimizer
+  - logging: default_logging
+  - data: default_data
+  - training: default_training
+  - evaluation: default_evaluation 
+  - tuner: default_tuner
+  - _self_
+
+model:
+  function: "tfxkit.common.tf_utils.define_mlp"
+  parameters:
+    n_features: 300
+
+training:
+  validation_split: 0.2
+

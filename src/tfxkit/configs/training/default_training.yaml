@@ -1,0 +1,13 @@
+batch_size: 81920
+epochs: 10
+
+validation_split: 0.0
+validation_data: null
+shuffle: true
+class_weight: null
+sample_weight: null
+initial_epoch: 0
+steps_per_epoch: null
+validation_steps: null
+validation_batch_size: null
+validation_freq: 1

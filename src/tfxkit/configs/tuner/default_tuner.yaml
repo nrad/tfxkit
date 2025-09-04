@@ -1,0 +1,35 @@
+functions:
+  progressive_layer_tuning:
+    function: "tfxkit.core.tuner.progressive_layer_tuning"
+    parameters:
+      units_choices: [64, 128, 256, 512]
+      max_layers: 5
+      patience: 1
+    settings:
+      max_trials: 20
+
+  layer_tuning:
+    function: "tfxkit.core.tuner.Tuner.layer_tuning"
+    parameters:
+      hidden_activation: "relu"
+      output_activation: "sigmoid"
+    settings:
+      max_trials: 10
+
+  optimizer_tuning:
+    function: "tfxkit.core.tuner.optimizer_tuning"
+    parameters:
+      optimizers: ["adam", "sgd", "rmsprop", "keras.optimizers.AdamW"]
+
+  generic_tuning:
+    function: "tfxkit.core.tuner.HyperTuner.generic_tuner"
+    parameters:
+      model.parameters.layers_list: [ 1, 1028,  ]
+      model.parameters.hidden_activation: ["relu", "tanh"]
+      model.parameters.final_activation: ["sigmoid", "softmax"]
+      optimizer.function: ["keras.optimizers.Adam", "keras.optimizers.AdamW"]
+
+sequence: 
+#  - progressive_layer_tuning
+  # - optimizer_tuning
+  - generic_tuning

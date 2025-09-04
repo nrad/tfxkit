@@ -1,0 +1,12 @@
+function: keras.optimizers.AdamW
+loss: binary_crossentropy
+metrics:
+  - accuracy
+  - precision
+  - recall
+parameters:
+  learning_rate: 0.001
+  weight_decay: 0.0005
+  clipnorm: 1.0
+  ema_momentum: 0.999
+  ema_overwrite_frequency: true

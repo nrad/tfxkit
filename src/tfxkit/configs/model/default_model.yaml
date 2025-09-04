@@ -1,0 +1,8 @@
+
+function: "tfxkit.common.tf_utils.define_mlp"
+parameters:
+  hidden_activation: relu
+  layers_list: [64, 32, 16]
+  final_activation: sigmoid
+  batch_norm_features: true
+  batch_norm_hidden: true
