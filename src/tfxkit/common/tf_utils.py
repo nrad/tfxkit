@@ -39,6 +39,17 @@ def xy_maker(
 
     return X, y, sample_weight
 
+
+def xy_from_sklearn(config):
+    from sklearn.datasets import load_breast_cancer
+    data = load_breast_cancer(as_frame=True)
+    df = data.frame
+    X = df[config.features]
+    y = df[data.target.name]
+    sample_weight = pd.Series(np.ones(len(X)), index=X.index)
+    return X, y, sample_weight
+
+
 def define_mlp(
     n_features,
     layers_list,
