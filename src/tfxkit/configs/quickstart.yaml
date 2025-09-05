@@ -1,0 +1,25 @@
+# examples/configs/quickstart.yaml
+defaults:
+  - config
+
+
+data:
+  xy_maker: tfxkit.common.tf_utils.xy_from_sklearn
+  features:
+    - mean radius
+    - mean texture
+    - mean perimeter
+    - mean area
+    - mean smoothness
+  labels: ["target"]
+
+  train_files: null
+  test_files: null
+  train_weights_column: null
+
+training:
+  epochs: 10
+  batch_size: 32
+  validation_split: 0.2
+
+
