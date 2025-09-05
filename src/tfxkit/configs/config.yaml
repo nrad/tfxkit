@@ -22,11 +22,8 @@ defaults:
   - tuner: default_tuner
   - _self_
 
-model:
-  function: "tfxkit.common.tf_utils.define_mlp"
-  parameters:
-    n_features: 300
-
-training:
-  validation_split: 0.2
+# model:
+#   function: "tfxkit.common.tf_utils.define_mlp"
+#   parameters:
+#     n_features: 300
 

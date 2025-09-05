@@ -14,15 +14,28 @@ class ConfigLoader:
         self.config = self.get_config(config_name, config_module)
         # self._resolve_keys()
 
-    def get_config(
-        self, config_name: str = "config", config_module: str = "tfxkit.configs"
+    # def get_config(
+    #     self, config_name: str = "config", config_module: str = "tfxkit.configs"
+    # ) -> DictConfig:
+    #     """Load configuration using Hydra."""
+    #     overrides = sys.argv[1:]  # collect CLI overrides
+    #     with initialize_config_module(config_module=config_module, version_base=None):
+    #         cfg = compose(config_name=config_name, overrides=overrides)
+    #     # cfg = OmegaConf.to_container(cfg, resolve=True)
+    #     return cfg
+
+    def ___get_config(
+        self,
+        config_name: str = "config",
+        config_module: str = "tfxkit.configs",
+        overrides: list[str] = None,
     ) -> DictConfig:
-        """Load configuration using Hydra."""
-        overrides = sys.argv[1:]  # collect CLI overrides
+        """Load configuration using Hydra, optionally applying overrides."""
+        if overrides is None:
+            overrides = sys.argv[1:] if self._called_from_cli() else []
+
         with initialize_config_module(config_module=config_module, version_base=None):
-            cfg = compose(config_name=config_name, overrides=overrides)
-        # cfg = OmegaConf.to_container(cfg, resolve=True)
-        return cfg
+            return compose(config_name=config_name, overrides=overrides)
 
     def _resolve_keys(self, keys=None):
         # raise NotImplementedError(
