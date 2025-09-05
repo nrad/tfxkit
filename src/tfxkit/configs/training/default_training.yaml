@@ -1,7 +1,7 @@
 batch_size: 81920
 epochs: 10
 
-validation_split: 0.0
+validation_split: 0.2
 validation_data: null
 shuffle: true
 class_weight: null

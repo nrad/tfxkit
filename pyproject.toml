@@ -25,7 +25,15 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest", "jupyter"]
-docs = ["sphinx", "myst-parser", "furo"]
+docs = [
+  "sphinx",
+  "sphinx-rtd-theme",
+  "myst-parser",
+  "furo"
+]
+
+[project.scripts]
+tfxkit = "tfxkit.cli:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
@@ -35,3 +43,4 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "tfxkit.configs" = ["*.yaml"]
+"tfxkit.examples.configs" = ["*.yaml"]
