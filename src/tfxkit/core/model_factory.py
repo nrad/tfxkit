@@ -47,7 +47,7 @@ class ModelFactory:
         self.__init_config(config=config)
         if data_manager is None:
             self.__init_data_manager(config=config)
-            # self.data = 
+            # self.data =
         if model is None:
             self.__init_model_builder(config=config)
             model = self.builder.model
@@ -55,14 +55,36 @@ class ModelFactory:
         self.__init_evaluator(config=config, model=model, data_manager=data_manager)
         self.__init_tuner(config=config, model=model, data_manager=data_manager)
 
-    def __init_config(self, config_name="config", config_module="tfxkit.configs", config=None):
+    # def __init_config(self, config_name="config", config_module="tfxkit.configs", config=None):
+    #     if config is not None:
+    #         self.config = config
+    #     else:
+    #         self.config_loader = ConfigLoader(
+    #             config_name=config_name, config_module=config_module
+    #         )
+    #         self.config = self.config_loader.config
+
+    def __init_config(
+        self, config_name="config", config_module="tfxkit.configs", config=None
+    ):
         if config is not None:
             self.config = config
-        else:
-            self.config_loader = ConfigLoader(
-                config_name=config_name, config_module=config_module
-            )
-            self.config = self.config_loader.config
+            return
+
+        # --- check CLI overrides ---
+        import sys
+
+        overrides = sys.argv[1:]
+        for arg in overrides:
+            if arg.startswith("config_name="):
+                config_name = arg.split("=", 1)[1]
+            elif arg.startswith("+config.module="):
+                config_module = arg.split("=", 1)[1]
+
+        self.config_loader = ConfigLoader(
+            config_name=config_name, config_module=config_module
+        )
+        self.config = self.config_loader.config
 
     def __init_data_manager(self, config):
         """Initialize the data manager with the provided config."""
@@ -86,13 +108,17 @@ class ModelFactory:
         config = config if config else self.config
         model = model if model else self.builder.model
         data_manager = data_manager if data_manager else self.data
-        self.evaluator = Evaluator(config=config, model=model, data_manager=data_manager)
+        self.evaluator = Evaluator(
+            config=config, model=model, data_manager=data_manager
+        )
 
     def __init_tuner(self, config=None, model=None, data_manager=None):
         config = config if config else self.config
         model = model if model else self.builder.model
         data_manager = data_manager if data_manager else self.data
-        self.hyper_tuner = HyperTuner(config=config, builder=self.builder, data=self.data)
+        self.hyper_tuner = HyperTuner(
+            config=config, builder=self.builder, data=self.data
+        )
 
     def __getattr__(self, name):
         """
@@ -135,6 +161,7 @@ class ModelFactory:
             comp_name, attr_name = dotted.split(".")
             component = getattr(self, comp_name)
             setattr(self, attr_name, getattr(component, attr_name))
+
 
 # @hydra.main(config_path="../../examples/configs", config_name="quickstart", version_base=None)
 # def main(cfg: DictConfig):

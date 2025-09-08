@@ -4,7 +4,8 @@ defaults:
 
 
 data:
-  xy_maker: tfxkit.common.tf_utils.xy_from_sklearn
+  file_reader: tfxkit.common.base_utils.read_csv
+  # xy_maker: tfxkit.common.tf_utils.xy_from_sklearn
   features:
     - mean radius
     - mean texture
@@ -13,8 +14,8 @@ data:
     - mean smoothness
   labels: ["target"]
 
-  train_files: null
-  test_files: null
+  train_files: src/tfxkit/examples/train.csv
+  test_files: src/tfxkit/examples/test.csv
   train_weights_column: null
 
 training:

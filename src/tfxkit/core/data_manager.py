@@ -3,6 +3,9 @@ import pandas as pd
 from tfxkit.common.base_utils import read_hdfs, import_function
 from dataclasses import dataclass, field
 import tfxkit.common.tf_utils as tf_utils
+from importlib import resources
+import os
+import glob
 
 
 logger = logging.getLogger(__name__)
@@ -26,13 +29,22 @@ class DataManager:
         self.sample_weight_column = self.config.get("sample_weight", None)
         self.__add_cached_df()
 
+    def get_file_reader(self):
+        """Dynamically import and return the file reader function."""
+        file_reader = import_function(self.data_config.file_reader)
+        return file_reader
+
     def _load_df(self, files=[]):
         """Load raw data into pandas DataFrames from HDF5 files."""
+        
         files = [files] if isinstance(files, str) else files
-        df = read_hdfs(
-            files,
-            postselection=self.config.get("selection", None),
-        )
+
+        file_reader = self.get_file_reader()
+        df = file_reader(files)
+        # df = read_hdfs(
+        #     files,
+        #     postselection=self.config.get("selection", None),
+        # )
         return df
 
     @classmethod
@@ -70,6 +82,15 @@ class DataManager:
 
                 files_key = f"{test_train}_files"
                 files = self.data_config[files_key]
+                # if isinstance(files, str):
+                #     if os.path.isfile(files):
+                #         files = [files]
+                #     if os.path.isdir(files):
+                #         files = glob.glob(files+"/{test_train}.*")
+                #     if "/"
+                #     elif files.startswith("tfxkit"):
+                #         files 
+
                 logger.debug(f"?? Loading {df_attr_name} from files: {files}")
                 if not hasattr(self, f"_{df_attr_name}"):
                     attr = self._load_df(files)

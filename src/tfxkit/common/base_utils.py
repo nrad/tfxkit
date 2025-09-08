@@ -66,7 +66,10 @@ def _read_hdf_in_chunks(file_path, chunksize, **kwargs):
     if last_chunk is not None:
         yield last_chunk
 
-
+def read_csv(file_paths):
+    file_paths = [file_paths] if isinstance(file_paths, (str)) else file_paths
+    return pd.concat([pd.read_csv(f) for f in file_paths])
+    
 
 def read_hdfs(file_paths, chunksize=None, **kwargs):
     if chunksize is None:

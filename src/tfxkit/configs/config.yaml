@@ -11,6 +11,7 @@ doc: |
 
   Example usage:
     python your_experiment_script.py model.custom_model=your_model_function optimizer.custom_optimizer=your_optimizer_function
+config_name: config
 
 defaults:
   - model: default_model
