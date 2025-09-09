@@ -240,34 +240,5 @@ def get_clipnorm(clipnorm):
 
 import matplotlib.pyplot as plt
 
-def fix_df_hist(df_hist):
-    # print(df_hist.columns)
-    for col in df_hist.columns:
-        # print(col, df_hist[col].dtype==object)
-        if df_hist[col].dtype == object:
-            expanded_col = pd.DataFrame(df_hist[col].tolist())
-            expanded_col.columns = [f"{col}_{i}" for i in expanded_col.columns]
-            df_hist.drop(col, axis=1, inplace=True)
-            df_hist = pd.concat([df_hist, expanded_col], axis=1)
-            # print(list(df_hist.columns))
-    return df_hist
 
 
-def plot_history(history, ylim=None, xlabel="Epoch", ylabel="", plot_kwargs={}, keys=None):
-    history = getattr(history, "history", history)
-    df_hist = pd.DataFrame(history)
-    df_hist = fix_df_hist(df_hist)
-
-    df_columns = df_hist.columns.tolist()
-    keys = df_columns if keys is None else keys
-
-    metrics = [k for k in keys if k in keys and not k.startswith("val_")]
-    val_metrics = [f'val_{k}' for k in keys if f'val_{k}' in df_columns]    
-
-    fig, ax = plt.subplots()
-    df_hist[metrics].plot(xlabel=xlabel, ylabel=ylabel, ylim=ylim, ax=ax, **plot_kwargs)
-    if val_metrics:
-        plt.gca().set_prop_cycle(None)
-        df_hist[val_metrics].plot(style="--", ax=ax, **plot_kwargs)
-        ax.legend(ncol=2, loc="upper right")
-    return fig, ax, df_hist

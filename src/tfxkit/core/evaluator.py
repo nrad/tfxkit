@@ -32,8 +32,6 @@ class Evaluator:
         df_train[pred_key] = self.predict(x=X_train, model=model, **predict_kwargs)
         df_test[pred_key] = self.predict(x=X_test, model=model, **predict_kwargs)
 
-
-
     def predict(self, model=None, **kwargs):
         """wrapper for model.predict"""
         model = self.model if model is None else model
@@ -44,3 +42,6 @@ class Evaluator:
         """Train the model using the configured parameters and data."""
         # self.data.load_df()
         pass
+
+    
+

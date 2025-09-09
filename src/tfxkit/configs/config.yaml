@@ -20,11 +20,7 @@ defaults:
   - data: default_data
   - training: default_training
   - evaluation: default_evaluation 
+  - plotter: default_plotter
   - tuner: default_tuner
   - _self_
-
-# model:
-#   function: "tfxkit.common.tf_utils.define_mlp"
-#   parameters:
-#     n_features: 300
 

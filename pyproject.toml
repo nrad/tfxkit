@@ -20,7 +20,8 @@ dependencies = [
   "numpy",
   "matplotlib",
   "keras-tuner",
-  "tables"
+  "tables",
+  "plothist",
 ]
 
 [project.optional-dependencies]

@@ -6,6 +6,7 @@ from tfxkit.core.model_builder import ModelBuilder
 from tfxkit.core.trainer import Trainer
 from tfxkit.core.evaluator import Evaluator
 from tfxkit.core.tuner import HyperTuner
+from tfxkit.core.plotter import Plotter
 
 logger = logging.getLogger(__name__)
 
@@ -45,14 +46,14 @@ class ModelFactory:
             data_manager (DataManager, optional): Pre-initialized data manager.
         """
         self.__init_config(config=config)
-        if data_manager is None:
+        if data_manager is None: 
             self.__init_data_manager(config=config)
-            # self.data =
         if model is None:
             self.__init_model_builder(config=config)
             model = self.builder.model
         self.__init_trainer(config=config, model=model, data_manager=data_manager)
         self.__init_evaluator(config=config, model=model, data_manager=data_manager)
+        self.__init_plotter(config=config, evaluator=self.evaluator, data_manager=data_manager, trainer=self.trainer)
         self.__init_tuner(config=config, model=model, data_manager=data_manager)
 
     # def __init_config(self, config_name="config", config_module="tfxkit.configs", config=None):
@@ -111,6 +112,14 @@ class ModelFactory:
         self.evaluator = Evaluator(
             config=config, model=model, data_manager=data_manager
         )
+
+    def __init_plotter(self, config=None, data_manager=None, evaluator=None, trainer=None):
+        """Initialize the plotter with the evaluator and data manager."""
+        config = config if config else self.config
+        evaluator = evaluator if evaluator else self.evaluator
+        data_manager = data_manager if data_manager else self.data
+        trainer = trainer if trainer else self.trainer
+        self.plot = Plotter(config=config, data_manager=None, evaluator=evaluator, trainer=trainer)
 
     def __init_tuner(self, config=None, model=None, data_manager=None):
         config = config if config else self.config

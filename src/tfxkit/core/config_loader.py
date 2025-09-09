@@ -11,6 +11,7 @@ class ConfigLoader:
     def __init__(
         self, config_name: str = "config", config_module: str = "tfxkit.configs"
     ):
+        # self.config_
         self.config = self.get_config(config_name, config_module)
         # self._resolve_keys()
 
@@ -23,8 +24,12 @@ class ConfigLoader:
     #         cfg = compose(config_name=config_name, overrides=overrides)
     #     # cfg = OmegaConf.to_container(cfg, resolve=True)
     #     return cfg
+    def _called_from_cli(self):
+        return sys.argv[0].endswith("cli.py") or sys.argv[0].endswith("cli")
 
-    def ___get_config(
+
+
+    def get_config(
         self,
         config_name: str = "config",
         config_module: str = "tfxkit.configs",
@@ -32,7 +37,7 @@ class ConfigLoader:
     ) -> DictConfig:
         """Load configuration using Hydra, optionally applying overrides."""
         if overrides is None:
-            overrides = sys.argv[1:] if self._called_from_cli() else []
+            overrides = sys.argv[1:] if not self._called_from_cli() else []
 
         with initialize_config_module(config_module=config_module, version_base=None):
             return compose(config_name=config_name, overrides=overrides)
