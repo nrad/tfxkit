@@ -45,7 +45,7 @@ def download_example_data():
     from sklearn.model_selection import train_test_split
     from importlib.resources import files
     data = load_breast_cancer(as_frame=True)
-    df_test, df_train = train_test_split(data.frame, test_size=0.2, random_state=42)
+    df_train, df_test = train_test_split(data.frame, test_size=0.3, random_state=42)
     for df, name in [(df_test, "test"), (df_train, "train")]:
         df.reset_index(drop=True, inplace=True)
         df = df.sample(frac=1)
@@ -122,13 +122,6 @@ def define_mlp(
             sequence.append(keras.layers.BatchNormalization(name=f"BatchNorm_{i}"))
 
 
-
-        # Optionally add BatchNormalization after this layer
-        # if batch_norm_all:
-        #     sequence.append(keras.layers.BatchNormalization(name=f"BatchNorm_{i+1}"))
-        #     sequence.append(keras.layers.Activation(activations_list[i]))
-        #     # assert False
-
         # Optionally add Dropout
         if dropout_list[i]:
             rate = dropout_list[i]
@@ -137,7 +130,7 @@ def define_mlp(
     # Add final output layer
     if n_labels:
         sequence.append(
-            keras.layers.Dense(n_labels, activation=final_activation, name="Output_Layer")
+            keras.layers.Dense(n_labels, activation=final_activation, name=f"Output_Layer_{final_activation}")
         )
 
     if sequence_only:

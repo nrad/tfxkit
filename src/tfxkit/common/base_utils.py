@@ -19,18 +19,43 @@ def get_selection_dict(df, class_name="filtered"):
 
     return {f"{class_name}=={k}": round(min_count / v, 5) for k, v in counts.items()}
 
+# def combine_weight_columns(df, weight_columns):
+#     """
+#     combine the weight columns into a single column
+#     weight_columns can be a list of columns or a single column
+#     """
+#     if weight_columns is None:
+#         return df.apply(lambda x: 1, axis=1)
+#     weight_columns = (
+#         [weight_columns] if isinstance(weight_columns, str) else weight_columns
+#     )
+#     return df[weight_columns].prod(axis=1)
+
 def combine_weight_columns(df, weight_columns):
     """
-    combine the weight columns into a single column
-    weight_columns can be a list of columns or a single column
+    Combine weight columns and/or scalar constants into a single weight Series.
+    weight_columns can be:
+      - None → returns all ones
+      - a single column name (str)
+      - a list of column names and/or floats (e.g., [2.0, "weight"])
     """
     if weight_columns is None:
-        return df.apply(lambda x: 1, axis=1)
-    weight_columns = (
-        [weight_columns] if isinstance(weight_columns, str) else weight_columns
-    )
-    return df[weight_columns].prod(axis=1)
+        return pd.Series(1.0, index=df.index)
 
+    if isinstance(weight_columns, str):
+        weight_columns = [weight_columns]
+    
+    if isinstance(weight_columns, (int, float)):
+        weight_columns = [weight_columns]
+
+    weights = pd.Series(1.0, index=df.index)
+    for w in weight_columns:
+        if isinstance(w, (int, float)):
+            weights *= w
+        else:
+            weights *= df[w]
+
+    return weights
 
 ##
 ## HDF5 file reading utilities
@@ -69,7 +94,7 @@ def _read_hdf_in_chunks(file_path, chunksize, **kwargs):
 def read_csv(file_paths):
     file_paths = [file_paths] if isinstance(file_paths, (str)) else file_paths
     return pd.concat([pd.read_csv(f) for f in file_paths])
-    
+
 
 def read_hdfs(file_paths, chunksize=None, **kwargs):
     if chunksize is None:

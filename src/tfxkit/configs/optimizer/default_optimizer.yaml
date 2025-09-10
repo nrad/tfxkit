@@ -2,8 +2,6 @@ function: keras.optimizers.AdamW
 loss: binary_crossentropy
 metrics:
   - accuracy
-  - precision
-  - recall
 parameters:
   learning_rate: 0.001
   weight_decay: 0.0005

@@ -61,7 +61,7 @@ def fix_df_hist(df_hist):
     return df_hist
 
 
-def plot_history(history, ylim=None, xlabel="Epoch", ylabel="", plot_kwargs={}, keys=None):
+def plot_history(history, ylim=None, xlabel="Epoch", ylabel="", plot_kwargs={}, keys=None, plot_path=None):
     history = getattr(history, "history", history)
     df_hist = pd.DataFrame(history)
     df_hist = fix_df_hist(df_hist)
@@ -78,6 +78,8 @@ def plot_history(history, ylim=None, xlabel="Epoch", ylabel="", plot_kwargs={}, 
         plt.gca().set_prop_cycle(None)
         df_hist[val_metrics].plot(style="--", ax=ax, **plot_kwargs)
         ax.legend(ncol=2, loc="upper right")
+    if plot_path:
+        savefig(fig, plot_path, formats=["png", "pdf"])
     return fig, ax, df_hist
 
 
@@ -134,7 +136,24 @@ def plot_classwise_hist(
 ):
     """
     Compare a variable, for instance the prediction, in the test and train datasets and for positive and negative classes
-
+    Parameters
+    ----------
+    df_test : DataFrame
+        The test dataset
+    df_train : DataFrame, optional
+        The train dataset, by default None
+    variable : str, optional
+        The variable to plot, by default "pred"
+    label_column : str, optional
+        The column name for the true labels, by default "truth"
+    weight_column : str or array-like, optional
+        The column name for the weights in the test dataset or an array-like of weights, by 
+        default None
+    weight_column_train : str or array-like, optional
+        The column name for the weights in the train dataset or an array-like of weights, by
+        default same as weight_column. Note that this may be different than the weight used
+        during the training. This is the weight to make the train dataset comparable to the 
+        test dataset.
     """
     include_train = df_train is not None
 
@@ -150,12 +169,15 @@ def plot_classwise_hist(
         bins=bins,
         range=range,
     )
-
+    logger.info(f"Plotting classwise hist for variable: {variable}")
+    logger.info(f"weight_column: {weight_column}")
+    logger.info(f"using kwargs: {pred_kwargs}")
     htest0, htest1 = make_classwise_hist(
         df_test,
         weights=weight_column,
         **pred_kwargs,
     )
+    logger.info(f"{htest0}\n{htest1}")
 
     hists += [htest0, htest1]
     labels += ["test (pos)", "test (neg)"]
@@ -376,6 +398,8 @@ def get_cumsum_frac(x, bins=50, range=(0, 1), density=True):
 def savefig(
     fig, plot_path, formats=["png", "pdf"], copy_php=False, verbose=True, **kwargs
 ):
+    if plot_path is None:
+        return
     kwargs.setdefault("dpi", 100)
     kwargs.setdefault("bbox_inches", "tight")
     print(kwargs)
@@ -395,6 +419,7 @@ def savefig(
         os.makedirs(plot_dir_base, exist_ok=True)
 
     if copy_php:
+        raise NotImplementedError("copy_php not implemented yet")
         copyIndexPHP(plot_dir_base)
 
     if plot_fmt:
@@ -405,7 +430,7 @@ def savefig(
         fig.savefig(plot_path_, **kwargs)
         if verbose:
             print("plot saved in: %s" % plot_path_)
-        show_url(plot_path)
+        # show_url(plot_path)
 
 
 # %%

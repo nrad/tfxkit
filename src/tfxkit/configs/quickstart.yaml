@@ -5,7 +5,6 @@ defaults:
 
 data:
   file_reader: tfxkit.common.base_utils.read_csv
-  # xy_maker: tfxkit.common.tf_utils.xy_from_sklearn
   features:
     - mean radius
     - mean texture
@@ -18,7 +17,14 @@ data:
   test_files: src/tfxkit/examples/test.csv
   train_weights_column: null
 
-
+model:
+  parameters:
+    hidden_activation: relu
+    final_activation: sigmoid
+    layers_list: [64, 32, 16]
+    batch_norm_features: true
+    batch_norm_hidden: true
+    dropout: 0.8
 
 training:
   epochs: 10
