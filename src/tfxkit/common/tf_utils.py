@@ -7,6 +7,7 @@ import keras
 
 logger = logging.getLogger(__name__)
 
+
 def get_weight_column(df, weights=None):
     """
     Returns the sample weight column from the DataFrame.
@@ -21,11 +22,8 @@ def get_weight_column(df, weights=None):
     else:
         raise ValueError(f"Invalid weights type: {type(weights)}")
 
-def xy_maker(
-    df, 
-    features, 
-    labels,
-    weight=None):
+
+def xy_maker(df, features, labels, weight=None):
     """
     Simple xy_maker function that extracts features and labels from a DataFrame."""
     X = df[features]
@@ -40,16 +38,30 @@ def xy_maker(
     return X, y, sample_weight
 
 
+def get_integers_from_string(pattern):
+    """
+    Extracts all integers from a string pattern and returns them as a list of integers.
+    this is useful for parsing layer sizes from strings since KerasTuner.Choice does
+    not take lists directly. e.g. "64-32-16" -> [64, 32, 16]
+    """
+    import re
+
+    values = [int(x) for x in re.findall(r"\d+", pattern)]
+    return values
+
+
 def download_example_data():
     from sklearn.datasets import load_breast_cancer
     from sklearn.model_selection import train_test_split
     from importlib.resources import files
+
     data = load_breast_cancer(as_frame=True)
     df_train, df_test = train_test_split(data.frame, test_size=0.3, random_state=42)
     for df, name in [(df_test, "test"), (df_train, "train")]:
         df.reset_index(drop=True, inplace=True)
         df = df.sample(frac=1)
-        df.to_csv(files("tfxkit.examples")/f"{name}.csv", index=False)
+        df.to_csv(files("tfxkit.examples") / f"{name}.csv", index=False)
+
 
 def define_mlp(
     n_features,
@@ -87,9 +99,16 @@ def define_mlp(
     Returns:
         tf.keras.Sequential: A compiled (but not trained) Keras Sequential model.
     """
-    layers_list = (
-        layers_list if isinstance(layers_list, (list, tuple)) else [layers_list]
-    )
+    # layers_list = (
+    #     layers_list if isinstance(layers_list, (list, tuple)) else [layers_list]
+    # )
+    if isinstance(layers_list, (list, tuple)):
+        layers_list = list(layers_list)
+    elif isinstance(layers_list, str):
+        layers_list = get_integers_from_string(layers_list)
+    else:
+        layers_list = [layers_list]
+
     n_layers = len(layers_list)
 
     # Convert single args to lists or validate list lengths
@@ -106,7 +125,7 @@ def define_mlp(
 
     if batch_norm_features:
         sequence.append(keras.layers.BatchNormalization(name="BatchNorm_Input"))
-        
+
     for i in range(n_layers):
         # Optionally add BatchNormalization for this layer
 
@@ -121,7 +140,6 @@ def define_mlp(
         if batch_norm_list[i]:
             sequence.append(keras.layers.BatchNormalization(name=f"BatchNorm_{i}"))
 
-
         # Optionally add Dropout
         if dropout_list[i]:
             rate = dropout_list[i]
@@ -130,7 +148,11 @@ def define_mlp(
     # Add final output layer
     if n_labels:
         sequence.append(
-            keras.layers.Dense(n_labels, activation=final_activation, name=f"Output_Layer_{final_activation}")
+            keras.layers.Dense(
+                n_labels,
+                activation=final_activation,
+                name=f"Output_Layer_{final_activation}",
+            )
         )
 
     if sequence_only:
@@ -142,9 +164,11 @@ def define_mlp(
         model.build(input_shape=(batch_size, n_features))
     return model
 
+
 ##
 ## Utilities for parsing and processing arguments
 ##
+
 
 def process_argument(arg, n_layers, default=None, fill_empty=True):
     """
@@ -163,6 +187,7 @@ def process_argument(arg, n_layers, default=None, fill_empty=True):
             return [arg if arg is not None else default] * n_layers
         else:
             return [arg if arg is not None else default] + [None] * (n_layers - 1)
+
 
 def parse_regularizer(reg_value):
     """
@@ -227,11 +252,9 @@ def get_clipnorm(clipnorm):
         return None
     return clipnorm
 
+
 ##
 ## Plotting utilities
 ##
 
 import matplotlib.pyplot as plt
-
-
-

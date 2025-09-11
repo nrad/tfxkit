@@ -32,3 +32,14 @@ training:
   validation_split: 0.2
 
 
+tuner:
+  functions:
+    generic_tuning:
+      parameters:
+        model.parameters.layers_list: [ "[64,32]", "[32, 64]", "[16,32]" ]
+        model.parameters.hidden_activation: ["relu", "tanh"]
+        optimizer.function: ["keras.optimizers.Adam", "keras.optimizers.AdamW"]
+        optimizer.parameters.learning_rate: [0.001, 0.0001]
+        #kernel_initializer:
+        optimizer.parameters.weight_decay: [0.01, 0.001]
+        model.parameters.dropout: [0.2, 0.5, 0.8]

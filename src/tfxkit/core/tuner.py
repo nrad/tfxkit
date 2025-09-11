@@ -93,19 +93,23 @@ class HyperTuner:
         kwargs should be a dictionary where keys are the hyperparameter names,
         corresponding to config fields and values are lists of possible values.
 
+        The modified config file is attached to the compiled model as model.config
+        so that it can be saved and inspected later.
+
         """
 
         def build_model(hp):
             new_conf = config.copy()
             for kwarg, choices in kwargs.items():
                 value = hp.Choice(kwarg, choices)
-                # OmegaConf.update(new_conf, f"model.parameters.{kwarg}", value)
                 OmegaConf.update(new_conf, kwarg, value)
-                print(f"Setting {kwarg} to {value}")
-                # config = new_conf
-            print(new_conf)
+                logger.debug(f"Setting {kwarg} to {value}")
+            logger.info(f"Building model with config: {new_conf}")
             builder = ModelBuilder(new_conf)
-            return builder.compile()
+
+            model = builder.compile()
+            model.config = new_conf #
+            return model
 
         return build_model
 
