@@ -31,6 +31,17 @@ class HyperTuner:
         self.builder = builder
         self.data = data
         self.results = []
+        self.tuner_config = self.config.get("tuner")
+
+    def locate_function(self, func_path):
+        if hasattr(self, func_path):
+            return getattr(self, func_path)
+        else:
+            func = locate(func_path)
+            if func is None:
+                raise ImportError(f"Could not locate function '{func_path}'")
+            return func
+
 
     def run_sequence(self):
         self.tuners = []
@@ -60,24 +71,26 @@ class HyperTuner:
                 **settings,
             )
             # self.results.append(result)
-            tuner = kt.BayesianOptimization(
-                model_builder,
-                objective="val_loss",
-                directory=name,
-                project_name=f"HPTuning",
-                max_trials=10,
-                num_initial_points=None,
-                alpha=0.0001,
-                beta=2.6,
-                seed=None,
-                overwrite=True,
+
+            tuner_func = self.locate_function(self.tuner_config.tuner.function)
+            tuner_params = OmegaConf.to_container(self.tuner_config.tuner.parameters, resolve=True)
+            logger.info(f"Using tuner function: {tuner_func.__name__} with params: {tuner_params}")
+            tuner = tuner_func(
+                hypermodel=model_builder, **tuner_params
             )
+            tuner = tuner_func(model_builder, **tuner_params)
+
+            search_params = OmegaConf.to_container(self.tuner_config.search, resolve=True)
+            validation_split = search_params.get("validation_split")
+            if not validation_split:
+                validation_split = self.config.training.get("validation_split", None)
+            search_params.update(validation_split=validation_split)
             tuner.search(
                 self.data.X_train,
                 self.data.y_train,
-                validation_split=0.2,
                 sample_weight=self.data.sample_weight_train,
-                batch_size=50_000,
+                **search_params,
+                # batch_size=50_000,
                 # verbose=0,
             )
             self.tuners.append((name, tuner))

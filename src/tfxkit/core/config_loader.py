@@ -70,12 +70,20 @@ class ConfigLoader:
         # self.config.data.train_files = OmegaConf.to_container(self.config.data.train_files, resolve=True)
         # self.config.data.test
 
-    def print_config(self):
+
+    def print_config(self, config=None):
         """Print the configuration in YAML format."""
         # print(OmegaConf.to_yaml(self.config))
+        config = config if config else self.config
         logger.info("Configuration:")
         logger.info("\n" + OmegaConf.to_yaml(self.config))
 
+    def save_config(self, file_path: str, config=None):
+        """Save the configuration to a YAML file."""
+        config = config if config else self.config
+        with open(file_path, "w") as file:
+            OmegaConf.save(config, file)
+        logger.info(f"Configuration saved to {file_path}")
 
 if __name__ == "__main__":
     cl = ConfigLoader()

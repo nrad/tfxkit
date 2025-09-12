@@ -1,7 +1,12 @@
 # examples/configs/quickstart.yaml
+docs: |
+  Quickstart configuration for TFXKit experiments.
+  This is example configuation based on the breast cancer dataset of sklearn.
+  It includes a simple model architecture, basic data settings, and a short training duration.
+  You can modify this configuration to suit your specific needs.
+
 defaults:
   - config
-
 
 data:
   file_reader: tfxkit.common.base_utils.read_csv
@@ -31,12 +36,11 @@ training:
   batch_size: 32
   validation_split: 0.2
 
-
 tuner:
   functions:
     generic_tuning:
       parameters:
-        model.parameters.layers_list: [ "[64,32]", "[32, 64]", "[16,32]" ]
+        model.parameters.layers_list: [ "[64,32]", "[32, 64]", "[16,32]", "64,128,64,32" ]
         model.parameters.hidden_activation: ["relu", "tanh"]
         optimizer.function: ["keras.optimizers.Adam", "keras.optimizers.AdamW"]
         optimizer.parameters.learning_rate: [0.001, 0.0001]

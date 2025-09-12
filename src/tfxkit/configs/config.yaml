@@ -24,3 +24,5 @@ defaults:
   - tuner: default_tuner
   - _self_
 
+tasks: 
+  - train
