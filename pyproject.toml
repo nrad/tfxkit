@@ -35,6 +35,8 @@ docs = [
 
 [project.scripts]
 tfxkit = "tfxkit.cli:main"
+tfxkit-train = "tfxkit.cli:train_entry"
+tfxkit-tune = "tfxkit.cli:tune_entry"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
