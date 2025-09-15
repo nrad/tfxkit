@@ -29,10 +29,13 @@ def prep_model_factory(cfg):
     return mf
 
 
-def download_example_data():
-    from tfxkit.common import tf_utils
+# def download_example_data():
+#     from tfxkit.common import tf_utils
 
-    tf_utils.download_example_data()
+#     tf_utils.download_example_data()
+def setup_example():
+    from tfxkit.examples.utils import setup_example
+    setup_example()
 
 
 def run_train(mf, cfg):
