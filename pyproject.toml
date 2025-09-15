@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tfxkit"
-version = "0.0.1"
+version = "0.0.2"
 description = "Toolkit for TensorFlow model workflows with config-driven training"
 authors = [
   { name="Navid K. Rad", email="navidkrad@gmail.com" }
 ]
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.12"
 
 dependencies = [
   "tensorflow",
@@ -37,6 +37,7 @@ docs = [
 tfxkit = "tfxkit.cli:main"
 tfxkit-train = "tfxkit.cli:train_entry"
 tfxkit-tune = "tfxkit.cli:tune_entry"
+tfxkit-download-example-data = "tfxkit.cli:download_example_data"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
