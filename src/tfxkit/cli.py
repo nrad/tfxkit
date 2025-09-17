@@ -3,6 +3,7 @@ import hydra
 from omegaconf import DictConfig
 from tfxkit.core.logger import setup_logging
 from tfxkit.core.model_factory import ModelFactory
+from tfxkit.core.config_loader import ConfigLoader
 
 # import IPython
 import sys
@@ -32,10 +33,15 @@ def prep_model_factory(cfg):
 # def download_example_data():
 #     from tfxkit.common import tf_utils
 
+
 #     tf_utils.download_example_data()
-def setup_example():
-    from tfxkit.examples.utils import setup_example
-    setup_example()
+@hydra.main(
+    config_path=DEFAULT_CONFIG_PATH, config_name=DEFAULT_CONFIG_NAME, version_base=None
+)
+def setup_example(cfg: DictConfig = None):
+    from tfxkit.examples.example_utils import setup_example
+
+    setup_example(default_cfg=cfg)
 
 
 def run_train(mf, cfg):
@@ -67,25 +73,31 @@ def run_hyper_tuning(mf, cfg):
     return mf
 
 
-@hydra.main(
-    config_path=DEFAULT_CONFIG_PATH, config_name=DEFAULT_CONFIG_NAME, version_base=None
-)
-def main(cfg: DictConfig) -> None:
-    print("🚀 TFxKit training...")
-    setup_logging(level=cfg.logging.level)
+# @hydra.main(
+#     config_path=DEFAULT_CONFIG_PATH, config_name=DEFAULT_CONFIG_NAME, version_base=None
+# )
 
+
+@hydra.main(config_path=DEFAULT_CONFIG_PATH, config_name=DEFAULT_CONFIG_NAME)
+def main(cfg: DictConfig) -> ModelFactory:
+    print("🚀 TFxKit initalizing...")
+    setup_logging(level=cfg.logging.level)
     mf = prep_model_factory(cfg)
-    task = cfg.get("task", "train")
-    if task == "run":
-        run_train_and_eval(mf, cfg)
-    elif task == "train":
-        run_train_and_eval(mf, cfg)
-    elif task == "tune":
-        run_hyper_tuning(mf, cfg)
-    elif task == "download_example_data":
-        download_example_data()
-    else:
-        raise ValueError(f"Unknown task: {task}")
+    mf.config_loader.print_config()
+
+    tasks = cfg.get("tasks")
+    for task in tasks:
+        if task == "run":
+            run_train_and_eval(mf, cfg)
+        elif task == "train":
+            run_train_and_eval(mf, cfg)
+        elif task == "tune":
+            run_hyper_tuning(mf, cfg)
+        elif task == "setup-example":
+            setup_example()
+        else:
+            raise ValueError(f"Unknown task: {task}")
+    return mf
 
 
 @hydra.main(
@@ -98,9 +110,10 @@ def train_entry(cfg: DictConfig) -> None:
     run_train_and_eval(mf, cfg)
 
 
-@hydra.main(
-    config_path=DEFAULT_CONFIG_PATH, config_name=DEFAULT_CONFIG_NAME, version_base=None
-)
+# @hydra.main(
+#     config_path=DEFAULT_CONFIG_PATH, config_name=DEFAULT_CONFIG_NAME, version_base=None
+# )
+@hydra.main(config_path=None, version_base=None)
 def tune_entry(cfg: DictConfig) -> None:
     print("🚀 TFxKit hyperparameter tuning...")
     setup_logging(level=cfg.logging.level)
@@ -110,4 +123,4 @@ def tune_entry(cfg: DictConfig) -> None:
 
 if __name__ == "__main__":
     print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-    main()
+    mf = main()

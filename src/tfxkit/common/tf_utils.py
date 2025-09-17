@@ -49,20 +49,6 @@ def get_integers_from_string(pattern):
     values = [int(x) for x in re.findall(r"\d+", pattern)]
     return values
 
-
-def download_example_data():
-    from sklearn.datasets import load_breast_cancer
-    from sklearn.model_selection import train_test_split
-    from importlib.resources import files
-
-    data = load_breast_cancer(as_frame=True)
-    df_train, df_test = train_test_split(data.frame, test_size=0.3, random_state=42)
-    for df, name in [(df_test, "test"), (df_train, "train")]:
-        df.reset_index(drop=True, inplace=True)
-        df = df.sample(frac=1)
-        df.to_csv(files("tfxkit.examples") / f"{name}.csv", index=False)
-
-
 def define_mlp(
     n_features,
     layers_list,

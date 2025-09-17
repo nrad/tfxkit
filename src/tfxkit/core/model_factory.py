@@ -46,6 +46,7 @@ class ModelFactory:
             data_manager (DataManager, optional): Pre-initialized data manager.
         """
         self.__init_config(config=config)
+        config = self.config
         if data_manager is None:
             self.__init_data_manager(config=config)
         if model is None:
@@ -61,35 +62,50 @@ class ModelFactory:
         )
         self.__init_tuner(config=config, model=model, data_manager=data_manager)
 
-    # def __init_config(self, config_name="config", config_module="tfxkit.configs", config=None):
-    #     if config is not None:
-    #         self.config = config
-    #     else:
-    #         self.config_loader = ConfigLoader(
-    #             config_name=config_name, config_module=config_module
-    #         )
-    #         self.config = self.config_loader.config
-
     def __init_config(
-        self, config_name="config", config_module="tfxkit.configs", config=None
+        self,
+        config=None,
+        # self, config_name="config", config_module="tfxkit.configs", config=None
     ):
+        import sys, os
+        from omegaconf import DictConfig
+
+        config_kwargs = dict(
+            config=None, config_dir="", config_name="", config_module=""
+        )
+
         if config is not None:
-            self.config = config
-            return
+            if isinstance(config, str) and config.endswith(".yaml"):
+                if not os.path.isfile(config):
+                    raise FileNotFoundError(
+                        f"Expected config file but did not find it: {config}"
+                    )
+                config_kwargs.update(
+                    config_name=os.path.splitext(os.path.basename(config))[0],
+                    config_dir=os.path.dirname(config),
+                )
+            elif isinstance(config, DictConfig):
+                config_kwargs.update(config=config)
+            else:
+                raise NotImplementedError(
+                    f"Unable to interpret the provided config: {config}"
+                )
 
         # --- check CLI overrides ---
-        import sys
+        else:
+            overrides = sys.argv[1:]
+            logger.info(
+                f"Looking for config_name in the command line arguments: {overrides}"
+            )
+            for arg in overrides:
+                if arg.startswith("config_name="):
+                    config_name = arg.split("=", 1)[1]
+                elif arg.startswith("config_dir="):
+                    config_dir = arg.split("=", 1)[1]
+                elif arg.startswith("config_module="):
+                    config_module = arg.split("=", 1)[1]
 
-        overrides = sys.argv[1:]
-        for arg in overrides:
-            if arg.startswith("config_name="):
-                config_name = arg.split("=", 1)[1]
-            elif arg.startswith("+config.module="):
-                config_module = arg.split("=", 1)[1]
-
-        self.config_loader = ConfigLoader(
-            config_name=config_name, config_module=config_module
-        )
+        self.config_loader = ConfigLoader(**config_kwargs)
         self.config = self.config_loader.config
 
     def __init_data_manager(self, config):
@@ -201,7 +217,21 @@ class ModelFactory:
 
 if __name__ == "__main__":
     logger.info("ModelFactory starting up...")
-    mf = ModelFactory()
+
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Run ModelFactory with optional config path.")
+    parser.add_argument(
+        "--config-path",
+        type=str,
+        default=None,
+        help="Path to a custom config file (YAML).",
+    )
+    args = parser.parse_args()
+
+    logger.info("ModelFactory starting up...")
+
+    mf = ModelFactory(config=args.config_path)
     setup_logging(level=mf.config.logging.level)
     mf.config_loader.print_config()
     mf.builder.compile()
@@ -217,3 +247,4 @@ if __name__ == "__main__":
 
     mf.evaluator.add_test_train_preds()
     logger.info("Predictions added to train and test datasets.")
+

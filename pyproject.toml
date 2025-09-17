@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tfxkit"
-version = "0.0.2"
+version = "0.0.4"
 description = "Toolkit for TensorFlow model workflows with config-driven training"
 authors = [
   { name="Navid K. Rad", email="navidkrad@gmail.com" }
@@ -22,6 +22,7 @@ dependencies = [
   "keras-tuner",
   "tables",
   "plothist",
+  "scikit-learn",
 ]
 
 [project.optional-dependencies]
@@ -37,7 +38,7 @@ docs = [
 tfxkit = "tfxkit.cli:main"
 tfxkit-train = "tfxkit.cli:train_entry"
 tfxkit-tune = "tfxkit.cli:tune_entry"
-tfxkit-download-example-data = "tfxkit.cli:download_example_data"
+pyproject.tomltfxkit-setup-example = "tfxkit.cli:setup_example"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
@@ -46,5 +47,4 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [tool.setuptools.package-data]
-"tfxkit.configs" = ["*.yaml"]
-"tfxkit.examples.configs" = ["*.yaml"]
+"tfxkit.configs" = ["*.yaml", "**/*.yaml"]
