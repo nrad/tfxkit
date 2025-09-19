@@ -35,9 +35,9 @@ def combine_weight_columns(df, weight_columns):
     """
     Combine weight columns and/or scalar constants into a single weight Series.
     weight_columns can be:
-      - None → returns all ones
-      - a single column name (str)
-      - a list of column names and/or floats (e.g., [2.0, "weight"])
+    - None → returns all ones
+    - a single column name (str)
+    - a list of column names and/or floats (e.g., [2.0, "weight"])
     """
     if weight_columns is None:
         return pd.Series(1.0, index=df.index)

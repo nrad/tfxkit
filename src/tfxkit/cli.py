@@ -5,7 +5,6 @@ from tfxkit.core.logger import setup_logging
 from tfxkit.core.model_factory import ModelFactory
 from tfxkit.core.config_loader import ConfigLoader
 
-# import IPython
 import sys
 
 DEFAULT_CONFIG_NAME = "quickstart"
@@ -86,6 +85,7 @@ def main(cfg: DictConfig) -> ModelFactory:
     mf.config_loader.print_config()
 
     tasks = cfg.get("tasks")
+    tasks = list(tasks) if isinstance(tasks, str) else tasks
     for task in tasks:
         if task == "run":
             run_train_and_eval(mf, cfg)
