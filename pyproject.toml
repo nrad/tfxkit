@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tfxkit"
-version = "0.0.4"
+version = "0.0.6"
 description = "Toolkit for TensorFlow model workflows with config-driven training"
 authors = [
   { name="Navid K. Rad", email="navidkrad@gmail.com" }
@@ -38,7 +38,7 @@ docs = [
 tfxkit = "tfxkit.cli:main"
 tfxkit-train = "tfxkit.cli:train_entry"
 tfxkit-tune = "tfxkit.cli:tune_entry"
-pyproject.tomltfxkit-setup-example = "tfxkit.cli:setup_example"
+tfxkit-setup-example = "tfxkit.cli:setup_example"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
