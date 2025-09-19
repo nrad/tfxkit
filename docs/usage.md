@@ -54,6 +54,28 @@ tfxkit --config-name=example --config-path=$TFXKDIR/examples
 ```
 
 
+# Useful Hydra commands:
+
+As you saw in the example config, you can pass on the `config-name` and `config-path` when running `tfxkit`.
+Another useful trick is to print the config file being loaded (including the default values) using `--cfg all` flag:
+
+`tfxkit --config-name=config --config-path=/path/to/dir/ --cfg all`
+
+The nice thing about Hydra is that all config options can be modified via the command line as well for example:
+
+`tfxkit model.parameters.hidden_activation="relu"`
+
+If the config item doesn't already exist, it has to be passed in the command line with `+`, e.g.;
+
+`tfxkit +optimizer.ema_momentum=0.9999`
+
+## To Do's
+
+- Implement the `--multirun` functionality of Hydra:
+   Hydra also has options for sweeping over different parameters but this is not fully tested within `tfxkit` yet.
+   `tfxkit --multirun optimizer.function=keras.optimizers.AdamW,keras.optimizers.Adam`
+- Save the result of training (model weights, etc), hyper tuning, and plots in a more consistent way
+
 
 ---
 
