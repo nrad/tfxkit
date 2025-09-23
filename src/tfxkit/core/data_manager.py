@@ -10,12 +10,14 @@ import glob
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class DatasetSplit:
     df: object = None
     X: object = None
     y: object = None
     sample_weight: object = None
+
 
 class DataManager:
     """
@@ -36,7 +38,7 @@ class DataManager:
 
     def _load_df(self, files=[]):
         """Load raw data into pandas DataFrames from HDF5 files."""
-        
+
         files = [files] if isinstance(files, str) else files
 
         file_reader = self.get_file_reader()
@@ -89,7 +91,7 @@ class DataManager:
                 #         files = glob.glob(files+"/{test_train}.*")
                 #     if "/"
                 #     elif files.startswith("tfxkit"):
-                #         files 
+                #         files
 
                 logger.debug(f"?? Loading {df_attr_name} from files: {files}")
                 if not hasattr(self, f"_{df_attr_name}"):
@@ -107,7 +109,7 @@ class DataManager:
             return
 
         xy_maker = import_function(self.data_config.xy_maker)
-        logger.info(f"Using xy_maker function: {xy_maker.__name__}")
+        logger.debug(f"Using xy_maker function: {xy_maker.__name__}")
 
         train_weights_column = self.data_config.get("weights_column", None)
         test_weights_column = train_weights_column
@@ -126,7 +128,9 @@ class DataManager:
                     "Please specify either 'weights' or 'train_weights_column'/'test_weights_column', not both."
                 )
         logger.info(
-            f"Using weights column: {train_weights_column} for training and {test_weights_column} for testing."
+            f"Using the following weights column:\n\t\
+                Training: {train_weights_column}\n\t\
+                Test:     {test_weights_column}"
         )
         X_train, y_train, sample_weight_train = xy_maker(
             self.df_train,
@@ -149,16 +153,10 @@ class DataManager:
         self._sample_weight_test = sample_weight_test
 
         self.train = DatasetSplit(
-            df=self.df_train,
-            X=X_train,
-            y=y_train,
-            sample_weight=sample_weight_train
+            df=self.df_train, X=X_train, y=y_train, sample_weight=sample_weight_train
         )
         self.test = DatasetSplit(
-            df=self.df_test,
-            X=X_test,
-            y=y_test,
-            sample_weight=sample_weight_test
+            df=self.df_test, X=X_test, y=y_test, sample_weight=sample_weight_test
         )
 
         # return X_train, X_test, y_train, y_test

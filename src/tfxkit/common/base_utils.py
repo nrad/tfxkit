@@ -4,7 +4,10 @@ from pprint import pprint
 import numpy as np
 import pandas as pd
 
+
 logger = logging.getLogger(__name__)
+
+
 
 
 ##
@@ -232,6 +235,6 @@ def import_function(fn_path, strict=True):
     if not hasattr(fn, "__call__") and strict:
         logger.debug(f"Loaded function {fn_name} from {module_path} but it's not callable:\n{fn}")
         raise ValueError(f"{fn_name} is not a callable function")
-    logger.info(f"Loaded function {fn_name} from {module_path}")
+    logger.debug(f"Loaded function {fn_name} from {module_path}")
 
     return fn

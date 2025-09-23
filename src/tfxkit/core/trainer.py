@@ -17,7 +17,13 @@ class Trainer:
         # self.
 
     def fit(self, **kwargs):
-        """Train the model using the configured parameters and data."""
+        """
+        Low-level training method.
+        This directly calls `model.fit(...)` on the underlying Keras model.
+        It does **not** automatic saving so normally you should call 
+        `ModelFactory.fit()` instead.
+        """
+    
         # self.data.load_df()
 
         fit_kwargs = dict(
@@ -29,8 +35,9 @@ class Trainer:
             sample_weight=self.data.sample_weight_train,
         )
         fit_kwargs.update(self.training_config)
-        logger.debug(f"Updating fit_kwargs with config: {fit_kwargs}")
-        fit_kwargs.update(kwargs)
+        if kwargs:
+            fit_kwargs.update(kwargs)
+            logger.debug(f"Updating kwargs with config: {fit_kwargs}")
         logger.info(f"Training model with fit_kwargs: {fit_kwargs}")
         self.history = self.model.fit(**fit_kwargs)
         # self.fit_kwargs = fit_kwargs

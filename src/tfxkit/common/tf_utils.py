@@ -28,12 +28,7 @@ def xy_maker(df, features, labels, weight=None):
     Simple xy_maker function that extracts features and labels from a DataFrame."""
     X = df[features]
     y = df[labels]
-
     sample_weight = get_weight_column(df, weight)
-    # if weight is not None:
-    #     sample_weight = df[weight]
-    # else:
-    #     sample_weight = pd.Series(np.ones(len(X)), index=X.index)
 
     return X, y, sample_weight
 
@@ -64,7 +59,7 @@ def define_mlp(
     build=True,
     batch_size=None,
     sequence_only=False,
-    # batch_norm_all=False,
+
 ):
     """
     Flexible function to define a neural network model with customizable
@@ -98,14 +93,14 @@ def define_mlp(
     n_layers = len(layers_list)
 
     # Convert single args to lists or validate list lengths
-    activations_list = process_argument(hidden_activation, n_layers, default="relu")
-    dropout_list = process_argument(dropout, n_layers, default=None, fill_empty=False)
+    activations_list = broadcast_argument_to_layers(hidden_activation, n_layers, default="relu")
+    dropout_list = broadcast_argument_to_layers(dropout, n_layers, default=None, fill_empty=False)
     print(dropout_list)
-    batch_norm_list = process_argument(
+    batch_norm_list = broadcast_argument_to_layers(
         batch_norm_hidden, n_layers, default=False, fill_empty=True
     )
-    init_list = process_argument(kernel_initializer, n_layers, default=None)
-    reg_list = process_argument(kernel_regularizer, n_layers, default=None)
+    init_list = broadcast_argument_to_layers(kernel_initializer, n_layers, default=None)
+    reg_list = broadcast_argument_to_layers(kernel_regularizer, n_layers, default=None)
 
     sequence = []
 
@@ -156,12 +151,13 @@ def define_mlp(
 ##
 
 
-def process_argument(arg, n_layers, default=None, fill_empty=True):
+def broadcast_argument_to_layers(arg, n_layers, default=None, fill_empty=True):
     """
-    Converts 'arg' into a list of length 'n_layers'.
+    Ensures 'arg' is list of length 'n_layers'.
     If 'arg' is already a list/tuple, validate its length.
     Otherwise, broadcast the single value to all layers.
     """
+    
     if isinstance(arg, (list, tuple)):
         if len(arg) != n_layers:
             raise ValueError(
@@ -239,8 +235,3 @@ def get_clipnorm(clipnorm):
     return clipnorm
 
 
-##
-## Plotting utilities
-##
-
-import matplotlib.pyplot as plt

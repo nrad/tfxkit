@@ -1,8 +1,10 @@
 from tfxkit.common import base_utils
+from tfxkit.common.base_utils import logger
 import pandas as pd
+import logging
 
-# import logging
-logger = base_utils.logging.getLogger(__name__)
+# logger = base_utils.logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 from plothist import (
     make_hist,
@@ -25,52 +27,51 @@ def get_bin_centers_and_widths(bins):
     return (bins[:-1] + bins[1:]) / 2, np.diff(bins)
 
 
-# def flatten(arr):
-#     if hasattr(arr, "flatten"):
-#         return arr.flatten()
-#     elif hasattr(arr, "to_numpy"):
-#         return arr.to_numpy().flatten()
-
-
 def plt_subplots(**kwargs):
-    # plt.subplots(nrows=2, ncols=1, figsize=(6, 5), sharex=True, gridspec_kw={'height_ratios': [3, 1], 'hspace':0.05})
     kwargs.setdefault("figsize", (6, 5))
     kwargs.setdefault("sharex", True)
     kwargs.setdefault("nrows", 2)
     kwargs.setdefault("ncols", 1)
-    if kwargs['nrows'] == 2:
+    if kwargs["nrows"] == 2:
         kwargs.setdefault("height_ratios", [3, 1])
     # kwargs.setdefault('hspace', 0.05)
     kwargs.setdefault("gridspec_kw", {})
     # kwargs['gridspec_kw'].setdefault('height_ratios', [3, 1])
     kwargs["gridspec_kw"].setdefault("hspace", 0.05)
-    print(kwargs)
+    # print(kwargs)    
+    logger.debug(f"Creating subplots with kwargs: {kwargs}")
     fig, axs = plt.subplots(**kwargs)
     return fig, axs
 
-def fix_df_hist(df_hist):
-    # print(df_hist.columns)
+
+def fix_train_history_df(df_hist):
     for col in df_hist.columns:
-        # print(col, df_hist[col].dtype==object)
         if df_hist[col].dtype == object:
             expanded_col = pd.DataFrame(df_hist[col].tolist())
             expanded_col.columns = [f"{col}_{i}" for i in expanded_col.columns]
             df_hist.drop(col, axis=1, inplace=True)
             df_hist = pd.concat([df_hist, expanded_col], axis=1)
-            # print(list(df_hist.columns))
     return df_hist
 
 
-def plot_history(history, ylim=None, xlabel="Epoch", ylabel="", plot_kwargs={}, keys=None, plot_path=None):
+def plot_history(
+    history,
+    ylim=None,
+    xlabel="Epoch",
+    ylabel="",
+    plot_kwargs={},
+    keys=None,
+    plot_path=None,
+):
     history = getattr(history, "history", history)
     df_hist = pd.DataFrame(history)
-    df_hist = fix_df_hist(df_hist)
+    df_hist = fix_train_history_df(df_hist)
 
     df_columns = df_hist.columns.tolist()
     keys = df_columns if keys is None else keys
 
     metrics = [k for k in keys if k in keys and not k.startswith("val_")]
-    val_metrics = [f'val_{k}' for k in keys if f'val_{k}' in df_columns]    
+    val_metrics = [f"val_{k}" for k in keys if f"val_{k}" in df_columns]
 
     fig, ax = plt.subplots()
     df_hist[metrics].plot(xlabel=xlabel, ylabel=ylabel, ylim=ylim, ax=ax, **plot_kwargs)
@@ -79,9 +80,8 @@ def plot_history(history, ylim=None, xlabel="Epoch", ylabel="", plot_kwargs={}, 
         df_hist[val_metrics].plot(style="--", ax=ax, **plot_kwargs)
         ax.legend(ncol=2, loc="upper right")
     if plot_path:
-        savefig(fig, plot_path, formats=["png", "pdf"])
+        save_fig(fig, plot_path, formats=["png", "pdf"])
     return fig, ax, df_hist
-
 
 
 def make_classwise_hist(
@@ -147,12 +147,12 @@ def plot_classwise_hist(
     label_column : str, optional
         The column name for the true labels, by default "truth"
     weight_column : str or array-like, optional
-        The column name for the weights in the test dataset or an array-like of weights, by 
+        The column name for the weights in the test dataset or an array-like of weights, by
         default None
     weight_column_train : str or array-like, optional
         The column name for the weights in the train dataset or an array-like of weights, by
         default same as weight_column. Note that this may be different than the weight used
-        during the training. This is the weight to make the train dataset comparable to the 
+        during the training. This is the weight to make the train dataset comparable to the
         test dataset.
     """
     include_train = df_train is not None
@@ -169,15 +169,17 @@ def plot_classwise_hist(
         bins=bins,
         range=range,
     )
-    logger.info(f"Plotting classwise hist for variable: {variable}")
-    logger.info(f"weight_column: {weight_column}")
-    logger.info(f"using kwargs: {pred_kwargs}")
+    logger.debug(f"Plotting classwise hist for variable: {variable}")
+    logger.debug(f"weight_column: {weight_column}")
+    logger.debug(f"using kwargs: {pred_kwargs}")
     htest0, htest1 = make_classwise_hist(
         df_test,
         weights=weight_column,
         **pred_kwargs,
     )
-    logger.info(f"{htest0}\n{htest1}")
+    logger.debug(f"Test Histograms:\n\
+                 negative class:\n{htest0}\n\
+                 positive class:\n{htest1}")
 
     hists += [htest0, htest1]
     labels += ["test (pos)", "test (neg)"]
@@ -215,7 +217,7 @@ def plot_classwise_hist(
     if include_train:
         hist_kw.update(histtype="stepfilled", alpha=0.2)
         for ihist, h in enumerate(hists[2:], 2):
-            print(ihist, colors, labels)
+            #print(ihist, colors, labels)
             plot_hist(
                 h, label=labels[ihist], color=colors[ihist], ax=ax_main, **hist_kw
             )
@@ -247,7 +249,7 @@ def plot_classwise_hist(
             color=colors[1],
             alpha=0.3,
         )
-        hists_dict['comparison_test'] = comparison
+        hists_dict["comparison_test"] = comparison
 
         # fig.subplots_adjust(hspace=0.11)
 
@@ -296,14 +298,14 @@ def plot_classwise_hist(
     )
     fig.align_ylabels()
     if plot_path:
-        savefig(fig, plot_path, formats=["png", "pdf"])
+        save_fig(fig, plot_path, formats=["png", "pdf"])
     return dict(fig=fig, ax_main=ax_main, ax_comp=ax_comparison, **hists_dict)
 
 
+##
+##
+##
 
-##
-## 
-##
 
 def plot_roc(fig_ax=None, truth=None, pred=None, weights=None, **plot_kwargs):
     import sklearn.metrics
@@ -322,6 +324,7 @@ def plot_roc(fig_ax=None, truth=None, pred=None, weights=None, **plot_kwargs):
     line = ax.plot(fpr, tpr, **plot_kwargs)
     ax.set_ylabel("True Positive Rate")
     ax.set_xlabel("False Positive Rate")
+    ax.legend()
     return dict(
         fig=fig, ax=ax, fpr=fpr, tpr=tpr, thresholds=thresholds, area=area, line=line
     )
@@ -379,8 +382,6 @@ def plot_prc(fig_ax=None, truth=None, pred=None, weights=None, **plot_kwargs):
     )
 
 
-
-
 def get_cumsum_frac(x, bins=50, range=(0, 1), density=True):
     weights = 1 if not density else 1.0 / len(x)
     h = make_hist(x, bins=bins, range=range, weights=weights)
@@ -395,14 +396,14 @@ def get_cumsum_frac(x, bins=50, range=(0, 1), density=True):
 
 
 # compare_preds(df_test, df_train, variable='pred',  range=(0,1), comparison="pull", y_label="normalized events", y_label_ratio="pull", x_label=None, y_scale='log' )
-def savefig(
-    fig, plot_path, formats=["png", "pdf"], copy_php=False, verbose=True, **kwargs
+def save_fig(
+    fig, plot_path, formats=["png", "pdf"], copy_php=False, **kwargs
 ):
     if plot_path is None:
         return
     kwargs.setdefault("dpi", 100)
     kwargs.setdefault("bbox_inches", "tight")
-    print(kwargs)
+    # print(kwargs)
 
     if "{" in plot_path:
         raise ValueError("plot_path needs more formating! %s" % plot_path)
@@ -414,8 +415,7 @@ def savefig(
     # plot_path_base = f'{plot_dir_base}/{plot_name_base}'
 
     if plot_dir_base and plot_dir_base != ".":
-        if not os.path.isdir(plot_dir_base) and verbose:
-            print("making dir:", plot_dir_base)
+        logger.debug(f"Ensuring plot directory exists: {plot_dir_base}"  )
         os.makedirs(plot_dir_base, exist_ok=True)
 
     if copy_php:
@@ -425,11 +425,13 @@ def savefig(
     if plot_fmt:
         formats = [plot_fmt]
 
+    paths = []
     for fmt in formats:
         plot_path_ = plot_path if plot_fmt else plot_path + f".{fmt}"
+        paths.append(plot_path_)
         fig.savefig(plot_path_, **kwargs)
-        if verbose:
-            print("plot saved in: %s" % plot_path_)
+    logger.info(f"Plot saved in:" + "".join(["\n\t"+p for p in paths]))
+
         # show_url(plot_path)
 
 
