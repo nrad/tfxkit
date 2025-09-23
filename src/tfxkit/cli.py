@@ -19,6 +19,12 @@ def get_args():
         action="store_true",
         help="Launch interactive IPython shell",
     )
+    parser.add_argument(
+        "--tasks",
+        "-t",
+        # action=""
+        help="list of tasks",
+    )
     args, unknown = parser.parse_known_args()
     return args
 
@@ -85,7 +91,7 @@ def main(cfg: DictConfig) -> ModelFactory:
     mf.config_loader.print_config()
 
     tasks = cfg.get("tasks")
-    tasks = list(tasks) if isinstance(tasks, str) else tasks
+    tasks = list([tasks]) if isinstance(tasks, str) else tasks
     for task in tasks:
         if task == "run":
             run_train_and_eval(mf, cfg)
