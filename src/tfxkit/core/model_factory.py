@@ -51,7 +51,8 @@ class ModelFactory:
             self.__init_data_manager(config=config)
         if model is None:
             self.__init_model_builder(config=config)
-            model = self.builder.model
+            builder = self.builder
+            model = builder.model
         self.__init_trainer(config=config, model=model, data_manager=data_manager)
         self.__init_evaluator(config=config, model=model, data_manager=data_manager)
         self.__init_plotter(
@@ -156,6 +157,25 @@ class ModelFactory:
         self.hyper_tuner = HyperTuner(
             config=config, builder=self.builder, data=self.data
         )
+
+    def fit(self, save_path=None):
+        """
+        Runs the model training and ensures automatic saving of the model and weights
+        after the training.
+
+        Args:
+            save_path (str or Path, optional): Where to save the trained model. 
+                If None, the path from `config.save_dir` will be used.
+
+        Returns:
+            History: The Keras History object from `model.fit()`.
+
+        TODO: pass on **kwargs to trainer.fit and save the updated config file
+        """
+        history = self.trainer.fit()
+        self.builder.save_model(save_path)
+        return history
+
 
     def __getattr__(self, name):
         """
