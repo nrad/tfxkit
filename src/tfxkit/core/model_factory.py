@@ -109,6 +109,21 @@ class ModelFactory:
         self.config_loader = ConfigLoader(**config_kwargs)
         self.config = self.config_loader.config
 
+    def hyper_tune(self):
+        """Run the hyperparameter tuning sequence."""
+        logger.info("Starting hyperparameter tuning sequence...")
+        logger.info("Hyper Tunning Sequence {self.hyper_tuner.config.tuner.sequence}")
+        self.hyper_tuner.run_sequence()
+
+    def attach_predictions(self):
+        """Attach model predictions to the training and test datasets."""
+        self.evaluator.add_test_train_preds()
+
+    def make_plots(self):
+        """Generate and save all configured plots."""
+        self.attach_predictions()
+        self.plotter.run_sequence()
+
     def __init_data_manager(self, config):
         """Initialize the data manager with the provided config."""
         config = config if config else self.config
@@ -219,7 +234,17 @@ class ModelFactory:
             component = getattr(self, comp_name)
             setattr(self, attr_name, getattr(component, attr_name))
 
+    def clone_with_config(self, config=None, overrides=None):
+        new_config = config if config else self.config
+        if overrides:
+            from omegaconf import OmegaConf
 
+            override_conf = OmegaConf.from_dotlist(overrides)
+            new_config = OmegaConf.merge(new_config, override_conf)
+        return ModelFactory(config=new_config)
+    # def NewFactory(self, config=None, overrides=None):
+    #     new_config = 
+        
 # @hydra.main(config_path="../../examples/configs", config_name="quickstart", version_base=None)
 # def main(cfg: DictConfig):
 #     setup_logging(level=cfg.logging.level)
