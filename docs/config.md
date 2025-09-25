@@ -11,19 +11,19 @@ Each TFxKit config YAML file is composed of several parts:
 - `optimizer`: Optimizer function and learning rate.
 - `training`: Training hyperparameters like batch size and epochs.
 - `logging`: Log level settings.
-- `tuning` *(optional)*: Setup for hyperparameter search.
+- `tuner` *(optional)*: Setup for hyperparameter search.
 - `defaults`: Optional includes or overrides for composing configs.
 
 ## Example Config File
 
-### data
+### Data 
 
 Defines where to find the input data and which fields to use.
 
-- `train_file`, `test_file`: Path to CSV or HDF5 files.
-- `label`: Name of the target column.
+- `train_files`, `test_files`: Path to CSV or HDF5 files.
+- `labels`: Name of the target column.
 - `features`: Optionally list input feature names.
-- `sample_weight_column`: Optional column to use as weights during training.
+- `train_weight_column`: Optional column to use as weights during training.
 - `file_reader` this should be the path to a function that takes a list of file paths. It will be called seperately for the test and train files. 
 - `xy_maker` this is a function that can perform any additional preprocessing on the test and train files. It should return the `X`, `y` and the optionally `sample_weights`. It will be called seperately for the test and the train datasets.
 
@@ -42,7 +42,7 @@ data:
   sample_weight_column: weight_column
 ```
 
-### model
+### Model building
 
 Controls model construction via a builder function.
 
@@ -66,7 +66,7 @@ model:
     batch_norm_hidden: true
 ```
 
-### training
+### Training
 
 Training hyperparameters.
 
@@ -89,8 +89,10 @@ training:
 
 Specifies the optimizer used in training.
 
-- `function`: e.g., `'adam'`, `'sgd'`
-- `learning_rate`: float
+- `optimizer.parameters.function`: e.g., `'adam'`, `'sgd'`
+- `optimizers.parameters.learning_rate`: float
+- any other parameters that the optimizer function might take.
+
 ```yaml
 optimizer:
   function: keras.optimizers.AdamW
@@ -106,11 +108,11 @@ optimizer:
 ```
 
 
-### tuning (optional)
+### Hyper Tuning 
 
 This is where things get interesting! 
-The first step is to have a `hypermodel` that works with kears_tuner
-for more info see for example https://keras.io/keras_tuner/api/tuners/bayesian/.
+The first step is to have a `hypermodel` that works with `keras_tuner`
+for more info see: https://keras.io/keras_tuner/api/tuners/.
 
 The different parts of the `model`, `optimizer` and `training` can be hypertuned
 using the already defined `generic_tuning` function. For example, by giving a list
@@ -133,16 +135,19 @@ tuner:
   tuner:
     function: "keras_tuner.BayesianOptimization"
     parameters:
-      objective: "val_los"
+      objective: "val_loss"
       max_trials: 10
       directory: "tuner_dir"
       project_name: "HPTuning"
+  search:
+    batch_size: 16384
+    validation_split: 0.2
     
   sequence:
     - generic_tuning
 ```
 
-### logging
+### Logging
 
 Controls the logging verbosity.
 
@@ -157,14 +162,6 @@ logging:
 ## Section Descriptions
 
 
-
-
-
-
-
-
-
-
 ### `defaults`
 
 Hydra syntax for structured composition. Use `_self_` to preserve the current config after override.
@@ -176,5 +173,5 @@ Hydra syntax for structured composition. Use `_self_` to preserve the current co
 - For custom experiments, you can easily override any key from the command line:
 
 ```bash
-tfxkit training.epochs=10 optimizer.learning_rate=0.0005
+tfxkit training.epochs=10 optimizer.parameters.learning_rate=0.0005
 ```

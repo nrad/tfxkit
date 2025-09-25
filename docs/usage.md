@@ -19,7 +19,7 @@ python -m venv $TFXKDIR
 source $TFXKDIR/bin/activate
 ```
 
-### Installation
+### Instal via PyPI
 
 Install tfxkit from TestPyPI:
 
@@ -29,7 +29,7 @@ pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/
 
 ---
 
-## 🚀 Quickstart Example
+## Quickstart Example
 
 This example uses a config with the `load_breast_cancer` dataset, builds a basic MLP, trains it, and evaluates its performance.
 But first setup and download the example dataset and config file:
@@ -45,9 +45,7 @@ The script will create the following items:
  - default config: `$TFXKDIR/examples/default_config.yaml`
  - primary config: `$TFXKDIR/examples/example.yaml`
 
-The primary config (example.yaml) builds on top of the default_config.yaml by importing it and overriding specific fields such as model parameters, dataset paths, or any other fields which is specified. 
-
-Then follow the suggested command for running the exmample config file. It should look something like this:
+The primary config (`example.yaml`) builds on top of the `default_config.yaml` by importing it and overriding specific fields such as model parameters, dataset paths, or any other fields which is specified. Then follow the suggested command for running the exmample config file. It should look something like this:
 
 ```bash
 tfxkit --config-name=example --config-path=$TFXKDIR/examples
