@@ -15,9 +15,21 @@ class ConfigLoader:
         config_name: str = "",
         config_module: str = "",
         config_dir: str = "",
+        overrides: list[str] = None,
     ):
+        """
+            Intialize the ConfigLoader.
+            If config is provided, it is used directly (optionally merged with overrides).
+            overrides should be a list of strings like ['key1=value1', 'item1.key2=value2'].
+        """
         if config:
+            if overrides:
+                # OmegaConf.merge(config, OmegaConf.from_dotlist(overrides))
+                config = OmegaConf.merge(
+                    config, OmegaConf.from_dotlist(overrides)
+                )
             self.config = config
+
             if config_name or config_dir or config_module:
                 raise ValueError(
                     "config was already provided. Config name should not be also given."
@@ -28,6 +40,7 @@ class ConfigLoader:
                 config_name,
                 config_module,
                 config_dir,
+                overrides=overrides,
             )
 
     def _called_from_cli(self):
