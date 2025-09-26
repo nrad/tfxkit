@@ -28,8 +28,8 @@ class ModelFactory:
         hyper_tuner (HyperTuner): Manages hyperparameter tuning.
     """
 
-    def __init__(self, config=None):
-        self.__init_components(config=config)
+    def __init__(self, config=None, data_manager=None):
+        self.__init_components(config=config, data_manager=data_manager)
         self._expose(
             [
                 "builder.model",
@@ -49,6 +49,8 @@ class ModelFactory:
         config = self.config
         if data_manager is None:
             self.__init_data_manager(config=config)
+        else:
+            self.data = data_manager
         if model is None:
             self.__init_model_builder(config=config)
             builder = self.builder
@@ -109,21 +111,6 @@ class ModelFactory:
         self.config_loader = ConfigLoader(**config_kwargs)
         self.config = self.config_loader.config
 
-    def hyper_tune(self):
-        """Run the hyperparameter tuning sequence."""
-        logger.info("Starting hyperparameter tuning sequence...")
-        logger.info("Hyper Tunning Sequence {self.hyper_tuner.config.tuner.sequence}")
-        self.hyper_tuner.run_sequence()
-
-    def attach_predictions(self):
-        """Attach model predictions to the training and test datasets."""
-        self.evaluator.add_test_train_preds()
-
-    def make_plots(self):
-        """Generate and save all configured plots."""
-        self.attach_predictions()
-        self.plotter.run_sequence()
-
     def __init_data_manager(self, config):
         """Initialize the data manager with the provided config."""
         config = config if config else self.config
@@ -173,13 +160,31 @@ class ModelFactory:
             config=config, builder=self.builder, data=self.data
         )
 
+
+    def hyper_tune(self):
+        """Run the hyperparameter tuning sequence."""
+        logger.info("Starting hyperparameter tuning sequence...")
+        logger.info("Hyper Tunning Sequence {self.hyper_tuner.config.tuner.sequence}")
+        self.hyper_tuner.run_sequence()
+
+    def attach_predictions(self):
+        """Attach model predictions to the training and test datasets."""
+        self.evaluator.add_test_train_preds()
+
+    def make_plots(self):
+        """Generate and save all configured plots."""
+        self.attach_predictions()
+        self.plotter.run_sequence()
+
+
+
     def fit(self, save_path=None):
         """
         Runs the model training and ensures automatic saving of the model and weights
         after the training.
 
         Args:
-            save_path (str or Path, optional): Where to save the trained model. 
+            save_path (str or Path, optional): Where to save the trained model.
                 If None, the path from `config.save_dir` will be used.
 
         Returns:
@@ -190,7 +195,6 @@ class ModelFactory:
         history = self.trainer.fit()
         self.builder.save_model(save_path)
         return history
-
 
     def __getattr__(self, name):
         """
@@ -234,17 +238,27 @@ class ModelFactory:
             component = getattr(self, comp_name)
             setattr(self, attr_name, getattr(component, attr_name))
 
-    def clone_with_config(self, config=None, overrides=None):
-        new_config = config if config else self.config
+    def clone_factory(self, *, config=None, overrides=None):
+        """
+        Create a new ModelFactory instance with an updated configuration.
+        Args:
+            config (OmegaConf, optional): New configuration to use. If None, uses the current config.
+            overrides (list of str, optional): List of dotlist strings to override specific config, eg.
+                ['key1=value1', 'item1.key2=value2'].
+        Returns:
+            ModelFactory: A new instance of ModelFactory with the updated configuration.
+        """
+        new_config = config if config is not None else self.config
         if overrides:
             from omegaconf import OmegaConf
-
             override_conf = OmegaConf.from_dotlist(overrides)
             new_config = OmegaConf.merge(new_config, override_conf)
         return ModelFactory(config=new_config)
+
     # def NewFactory(self, config=None, overrides=None):
-    #     new_config = 
-        
+    #     new_config =
+
+
 # @hydra.main(config_path="../../examples/configs", config_name="quickstart", version_base=None)
 # def main(cfg: DictConfig):
 #     setup_logging(level=cfg.logging.level)
@@ -265,7 +279,9 @@ if __name__ == "__main__":
 
     import argparse
 
-    parser = argparse.ArgumentParser(description="Run ModelFactory with optional config path.")
+    parser = argparse.ArgumentParser(
+        description="Run ModelFactory with optional config path."
+    )
     parser.add_argument(
         "--config-path",
         type=str,
@@ -292,4 +308,3 @@ if __name__ == "__main__":
 
     mf.evaluator.add_test_train_preds()
     logger.info("Predictions added to train and test datasets.")
-
