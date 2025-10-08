@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tfxkit"
-version = "0.0.6"
+version = "0.0.7"
 description = "Toolkit for TensorFlow model workflows with config-driven training"
 authors = [
   { name="Navid K. Rad", email="navidkrad@gmail.com" }
@@ -23,6 +23,7 @@ dependencies = [
   "tables",
   "plothist",
   "scikit-learn",
+  "uncertainties",
 ]
 
 [project.optional-dependencies]
