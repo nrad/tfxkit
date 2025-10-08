@@ -28,15 +28,16 @@ class ModelFactory:
         hyper_tuner (HyperTuner): Manages hyperparameter tuning.
     """
 
-    def __init__(self, config=None, data_manager=None):
-        self.__init_components(config=config, data_manager=data_manager)
-        self._expose(
-            [
-                "builder.model",
-            ]
-        )
+    def __init__(self, config=None, data_manager=None, overrides=None, debug=False):
+        if not debug:
+            self.__init_components(config=config, data_manager=data_manager, overrides=overrides)
+            # self._expose(
+            #     [
+            #         "builder.model",
+            #     ]
+            # )
 
-    def __init_components(self, config=None, model=None, data_manager=None):
+    def __init_components(self, config=None, data_manager=None, overrides=None):
         """
         Initialize all components of the ModelFactory.
 
@@ -45,36 +46,36 @@ class ModelFactory:
             model (keras.Model, optional): Compiled model to use instead of building from scratch.
             data_manager (DataManager, optional): Pre-initialized data manager.
         """
-        self.__init_config(config=config)
+        self.__init_config(config=config, overrides=overrides)
         config = self.config
         if data_manager is None:
             self.__init_data_manager(config=config)
         else:
             self.data = data_manager
-        if model is None:
-            self.__init_model_builder(config=config)
-            builder = self.builder
-            model = builder.model
-        self.__init_trainer(config=config, model=model, data_manager=data_manager)
-        self.__init_evaluator(config=config, model=model, data_manager=data_manager)
+        # if model is None:
+        self.__init_model_builder(config=config)
+        builder = self.builder
+        model = builder.model
+        self.__init_trainer(config=config, builder=builder, data_manager=data_manager)
+        self.__init_evaluator(config=config, builder=builder, data_manager=data_manager)
         self.__init_plotter(
             config=config,
             evaluator=self.evaluator,
             data_manager=data_manager,
             trainer=self.trainer,
         )
-        self.__init_tuner(config=config, model=model, data_manager=data_manager)
+        self.__init_tuner(config=config, data_manager=data_manager)
 
     def __init_config(
         self,
         config=None,
-        # self, config_name="config", config_module="tfxkit.configs", config=None
+        overrides=None,
     ):
         import sys, os
         from omegaconf import DictConfig
 
         config_kwargs = dict(
-            config=None, config_dir="", config_name="", config_module=""
+            config=None, config_dir="", config_name="", config_module="", overrides=overrides
         )
 
         if config is not None:
@@ -91,7 +92,7 @@ class ModelFactory:
                 config_kwargs.update(config=config)
             else:
                 raise NotImplementedError(
-                    f"Unable to interpret the provided config: {config}"
+                    f"Unable to interpret the provided config: {type(config)} : {config}"
                 )
 
         # --- check CLI overrides ---
@@ -121,20 +122,20 @@ class ModelFactory:
         config = config if config else self.config
         self.builder = ModelBuilder(self.config)
 
-    def __init_trainer(self, config=None, model=None, data_manager=None):
-        """Initialize the trainer with the model and data manager."""
-        model = model if model else self.builder.model
+    def __init_trainer(self, config=None, builder=None, data_manager=None):
+        """Initialize the trainer with the builder and data manager."""
+        builder = builder if builder else self.builder
         config = config if config else self.config
         data_manager = data_manager if data_manager else self.data
-        self.trainer = Trainer(config=config, model=model, data_manager=data_manager)
+        self.trainer = Trainer(config=config, builder=builder, data_manager=data_manager)
 
-    def __init_evaluator(self, config=None, model=None, data_manager=None):
-        """Initialize the evaluator with the model and data manager."""
+    def __init_evaluator(self, config=None, builder=None, data_manager=None):
+        """Initialize the evaluator with the builder and data manager."""
         config = config if config else self.config
-        model = model if model else self.builder.model
+        builder = builder if builder else self.builder
         data_manager = data_manager if data_manager else self.data
         self.evaluator = Evaluator(
-            config=config, model=model, data_manager=data_manager
+            config=config, builder=builder, data_manager=data_manager
         )
 
     def __init_plotter(
@@ -152,12 +153,12 @@ class ModelFactory:
             trainer=trainer,
         )
 
-    def __init_tuner(self, config=None, model=None, data_manager=None):
+    def __init_tuner(self, config=None, builder=None, data_manager=None):
         config = config if config else self.config
-        model = model if model else self.builder.model
+        builder = builder if builder else self.builder
         data_manager = data_manager if data_manager else self.data
         self.hyper_tuner = HyperTuner(
-            config=config, builder=self.builder, data=self.data
+            config=config, data=self.data
         )
 
 
@@ -231,12 +232,16 @@ class ModelFactory:
             f"'{self.__class__.__name__}' object has no attribute '{name}'"
         )
 
-    def _expose(self, targets):
-        """Expose selected component methods/attributes directly on the factory."""
-        for dotted in targets:
-            comp_name, attr_name = dotted.split(".")
-            component = getattr(self, comp_name)
-            setattr(self, attr_name, getattr(component, attr_name))
+    # def _expose(self, targets):
+    #     """Expose selected component methods/attributes directly on the factory."""
+    #     for dotted in targets:
+    #         comp_name, attr_name = dotted.split(".")
+    #         component = getattr(self, comp_name)
+    #         setattr(self, attr_name, getattr(component, attr_name))
+
+    @property
+    def model(self):
+        return self.builder.model
 
     def clone_factory(self, *, config=None, overrides=None):
         """

@@ -28,7 +28,7 @@ class DataManager:
     def __init__(self, config):
         self.config = config
         self.data_config = self.config.data
-        self.sample_weight_column = self.config.get("sample_weight", None)
+        # self.sample_weight_column = self.data_config.get("sample_weight", None)
         self.__add_cached_df()
 
     def get_file_reader(self):
@@ -111,38 +111,38 @@ class DataManager:
         xy_maker = import_function(self.data_config.xy_maker)
         logger.debug(f"Using xy_maker function: {xy_maker.__name__}")
 
-        train_weights_column = self.data_config.get("weights_column", None)
-        test_weights_column = train_weights_column
-        if not train_weights_column:
-            train_weights_column = self.data_config.get("train_weights_column", None)
-            test_weights_column = self.data_config.get("test_weights_column", None)
+        weight_column_train = self.data_config.get("weights_column", None)
+        weight_column_test = weight_column_train
+        if not weight_column_train:
+            weight_column_train = self.data_config.get("weight_column_train", None)
+            weight_column_test = self.data_config.get("weight_column_test", None)
         else:
-            if getattr(self.data_config, "train_weights_column") or getattr(
-                self.data_config, "test_weights_column"
+            if getattr(self.data_config, "weight_column_train") or getattr(
+                self.data_config, "weight_column_test"
             ):
                 logger.warning(
-                    "Both 'weights' and 'train_weights_column'/'test_weights_column' are set. "
+                    "Both 'weights' and 'weight_column_train'/'weight_column_test' are set. "
                     "Using 'weights' for both train and test sets."
                 )
                 raise ValueError(
-                    "Please specify either 'weights' or 'train_weights_column'/'test_weights_column', not both."
+                    "Please specify either 'weights' or 'weight_column_train'/'weight_column_test', not both."
                 )
         logger.info(
             f"Using the following weights column:\n\t\
-                Training: {train_weights_column}\n\t\
-                Test:     {test_weights_column}"
+                Training: {weight_column_train}\n\t\
+                Test:     {weight_column_test}"
         )
         X_train, y_train, sample_weight_train = xy_maker(
             self.df_train,
             self.data_config.features,
             self.data_config.labels,
-            train_weights_column,
+            weight_column_train,
         )
         X_test, y_test, sample_weight_test = xy_maker(
             self.df_test,
             self.data_config.features,
             self.data_config.labels,
-            test_weights_column,
+            weight_column_test,
         )
 
         self._X_train = X_train

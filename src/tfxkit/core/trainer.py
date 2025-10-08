@@ -9,12 +9,15 @@ class Trainer:
     Handles training the model, including callbacks and checkpoints.
     """
 
-    def __init__(self, config, model, data_manager: DataManager):
+    def __init__(self, config, builder, data_manager: DataManager):
         self.config = config
         self.training_config = self.config.training
-        self.model = model
+        self.builder = builder
         self.data = data_manager
-        # self.
+
+    @property
+    def model(self):
+        return self.builder.model
 
     def fit(self, **kwargs):
         """
@@ -24,8 +27,6 @@ class Trainer:
         `ModelFactory.fit()` instead.
         """
     
-        # self.data.load_df()
-
         fit_kwargs = dict(
             # batch_size=self.training_config.batch_size,
             # epochs=self.training_config.epochs,

@@ -11,23 +11,22 @@ class ConfigLoader:
 
     def __init__(
         self,
-        config: DictConfig = Optional[DictConfig],
+        config: Optional[DictConfig] = None,
         config_name: str = "",
         config_module: str = "",
         config_dir: str = "",
         overrides: list[str] = None,
     ):
         """
-            Intialize the ConfigLoader.
-            If config is provided, it is used directly (optionally merged with overrides).
-            overrides should be a list of strings like ['key1=value1', 'item1.key2=value2'].
+        Intialize the ConfigLoader.
+        If config is provided, it is used directly (optionally merged with overrides).
+        overrides should be a list of strings like ['key1=value1', 'item1.key2=value2'].
         """
-        if config:
+        if config is not None:
+            print("config:", config)
             if overrides:
                 # OmegaConf.merge(config, OmegaConf.from_dotlist(overrides))
-                config = OmegaConf.merge(
-                    config, OmegaConf.from_dotlist(overrides)
-                )
+                config = OmegaConf.merge(config, OmegaConf.from_dotlist(overrides))
             self.config = config
 
             if config_name or config_dir or config_module:

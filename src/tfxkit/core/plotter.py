@@ -20,6 +20,16 @@ class Plotter:
         self.plots_path = self.plot_config.get(
             "plots_path", self.config.get("save_dir", None)
         )
+        # self.weight_column = self.plot_config.get("weight_column", None)
+        # self.weight_column_train = self.plot_config.get("weight_column_train", None)
+
+    @property
+    def weight_column(self):
+        return self.plot_config.get("weight_column", None)
+    
+    @property
+    def weight_column_train(self):
+        return self.plot_config.get("weight_column_train", None)
 
     def locate_function(self, func_path):
         """
@@ -51,6 +61,21 @@ class Plotter:
         if plot_name:
             plot_path = os.path.join(plot_path, plot_name)
         return plot_path
+
+    def parse_plotter_func_kwargs(self, func_config):
+        kwargs = (
+            OmegaConf.to_container(func_config.get("parameters"), resolve=True)
+            if func_config.get("parameters")
+            else {}
+        )
+        return kwargs
+
+    def resolve_weight_column(self, kwargs):
+        if self.weight_column and "weight_column" not in kwargs:
+            kwargs["weight_column"] = self.weight_column
+        if self.weight_column_train and "weight_column_train" not in kwargs:
+            kwargs["weight_column_train"] = self.weight_column_train
+        return kwargs
 
     def save_fig(self, fig, plot_name=None, plot_path=None, **kwargs):
         plot_path = self.resolve_plot_path(plot_name, plot_path)
@@ -89,19 +114,23 @@ class Plotter:
 
         plot_path = self.resolve_plot_path(plot_name, plot_path)
 
+        kwargs = self.resolve_weight_column(kwargs)
         target_label = self.data.data_config["labels"][0]
+        logger.info(f"Plotting classwise hist for variable: {variable}")
+        logger.info(f"weight_column: {weight_column}")
+        logger.info(f"weight_column_train: {weight_column_train}")
+        logger.info(f"using kwargs: {kwargs}")
         output = pu.plot_classwise_hist(
             self.data.df_test,
             df_train=self.data.df_train,
             variable=variable,
             label_column=target_label,
-            weight_column=weight_column,
-            weight_column_train=weight_column_train,
+            # weight_column=weight_column,
+            # weight_column_train=weight_column_train,
             # weight_column=weights if weights is not None else self.data.data_config.get("weights_column", None),
             # weight_column_train=weights if weights is not None else self.data.data_config.get("weights_column", None),
             bins=bins,
             range=range,
-            comparison="pull",
             plot_path=plot_path,
             **kwargs,
         )
@@ -182,11 +211,7 @@ class Plotter:
                 func_config = self.plot_config.functions[name]
                 func_path = func_config.function
                 logger.debug(f"Importing function: {func_path}")
-                kwargs = (
-                    OmegaConf.to_container(func_config.get("parameters"), resolve=True)
-                    if func_config.get("parameters")
-                    else {}
-                )
+                kwargs = self.parse_plotter_func_kwargs(func_config)
 
             func = self.locate_function(func_path)
             if func is None:

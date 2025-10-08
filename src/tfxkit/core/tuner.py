@@ -26,9 +26,9 @@ class HyperTuner:
         run_sequence():
             Executes all tuner functions defined in the config's sequence.
     """
-    def __init__(self, config, builder, data):
+    def __init__(self, config, data):
         self._config = config
-        self._builder = builder
+        # self._builder = builder
         self._data = data
         self.results = []
         self.tuner_config = self._config.get("tuner")
@@ -87,7 +87,7 @@ class HyperTuner:
             # func(self, **kwargs, **settings)
             model_builder = func(
                 config=self._config,
-                builder=self._builder,
+                # builder=self._builder,
                 data=self._data,
                 **kwargs,
                 **settings,
@@ -121,7 +121,7 @@ class HyperTuner:
 
 def generic_tuner(
     config,
-    builder,
+    # builder,
     data,
     **kwargs,
 ):

@@ -1,11 +1,11 @@
-import tensorflow as tf
-from tensorflow import keras
-
-
-from tfxkit.common.base_utils import import_function
-from omegaconf import OmegaConf
+"""
+ModelBuilder is a class that builds and compiles the Keras model using config parameters.
+"""
 import os
 import logging
+import keras
+from omegaconf import OmegaConf
+from tfxkit.common.base_utils import import_function, get_required_positional_arguments
 
 logger = logging.getLogger(__name__)
 
@@ -15,19 +15,41 @@ class ModelBuilder:
     Responsible for building and compiling the Keras model using config parameters.
     """
 
-    def __init__(self, config):
-        self.config = config
-        self.model_config = self.config.model
-        self.model_parameters = OmegaConf.to_container(
+    @property
+    def model_parameters(self):
+        return OmegaConf.to_container(
             self.model_config.parameters, resolve=True
         )
-        self.optimizer_config = self.config.optimizer
-        self.optimizer_parameters = OmegaConf.to_container(
+
+    @property
+    def optimizer_parameters(self):
+        return OmegaConf.to_container(
             self.optimizer_config.parameters, resolve=True
         )
 
-        self.loss = self.optimizer_config.loss
-        self.metrics = list(self.optimizer_config.metrics)
+    @property
+    def metrics(self):
+        return list(self.optimizer_config.metrics)
+
+    @property
+    def loss(self):
+        return self.optimizer_config.loss
+
+    
+
+    def __init__(self, config):
+        self.config = config
+        self.model_config = self.config.model
+        self.optimizer_config = self.config.optimizer
+        # self.model_parameters = OmegaConf.to_container(
+        #     self.model_config.parameters, resolve=True
+        # )
+        # self.optimizer_parameters = OmegaConf.to_container(
+        #     self.optimizer_config.parameters, resolve=True
+        # )
+
+        # self.loss = self.optimizer_config.loss
+        # self.metrics = list(self.optimizer_config.metrics)
 
         self.data_config = self.config.data
         self.features = self.data_config.features
@@ -41,7 +63,7 @@ class ModelBuilder:
         if os.path.isfile(self.model_path) and self.model_config.reload_model:
             self.load_model()
         else:
-            self.model = self.define_model()
+            self.define_model()
 
     def _check_model_consistency_with_config(self):
         """
@@ -50,15 +72,23 @@ class ModelBuilder:
             with the model one would get by building from the config file.
         """
 
-    def _locate_model_function(self):
+    # def _locate_model_function(self):
 
+    @property
+    def definer(self):
+        """
+        Returns the model function to be used to build the model, based on the 
+        function path in the config. If the function is not found, it will 
+        default to tfxkit.common.tf_utils.define_mlp.
+        """
         fn_path = self.model_config.get("function", "tfxkit.common.tf_utils.define_mlp")
         model_definer = import_function(fn_path)
-        setattr(self, "definer", model_definer)
         return model_definer
 
-    def define_model(self, **kwargs):
-        self._locate_model_function()
+    def define_model(self, attach_to_builder=True, **kwargs):
+        """
+        Builds the model using the model function returned by the definer property.
+        """
         model_kwargs = dict(**self.model_parameters)
         if kwargs:
             logger.debug(f"Updating model parameters with: {kwargs}")
@@ -69,11 +99,22 @@ class ModelBuilder:
                 "n_labels": self.n_labels,
             }
         )
+
+        required_pos_args = get_required_positional_arguments(self.definer)
+        extra_args = {'features': self.features, 'labels': self.labels}
+        for arg in required_pos_args:
+            if arg not in model_kwargs:
+                if arg in extra_args:
+                    model_kwargs[arg] = extra_args[arg]
+                else:
+                    raise ValueError(f"Required positional argument {arg} not found in model parameters")
+
         logger.info(
             f"Defining model with: {self.definer.__name__} and args: {model_kwargs}"
         )
         model = self.definer(**model_kwargs)
-
+        if attach_to_builder:
+            self.model = model
         return model
 
     def summary(self):
@@ -85,6 +126,9 @@ class ModelBuilder:
             logger.warning("Model is not defined yet. Cannot print summary.")
 
     def compile(self, model=None, loss=None, metrics=None, **kwargs):
+        """
+        Compiles the model using the optimizer and loss function specified in the config.
+        """
 
         model = self.model if model is None else model
         loss = self.loss if loss is None else loss

@@ -10,12 +10,17 @@ class Evaluator:
     Handles training the model, including callbacks and checkpoints.
     """
 
-    def __init__(self, config, model, data_manager: DataManager):
+    def __init__(self, config, builder, data_manager: DataManager):
         self.config = config
         self.training_config = self.config.training
         self.eval_config = self.config.evaluation
-        self.model = model
+        # self.model = model
+        self.builder = builder
         self.data = data_manager
+
+    @property
+    def model(self):
+        return self.builder.model
 
     def add_test_train_preds(self, model=None, pred_key="pred", **kwargs):
         df_train = self.data.df_train
