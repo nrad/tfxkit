@@ -238,3 +238,39 @@ def import_function(fn_path, strict=True):
     logger.debug(f"Loaded function {fn_name} from {module_path}")
 
     return fn
+
+
+def filter_function_kwargs(func, default_kwargs={}, **kwargs):
+    """
+    select only kwargs which are arguments for func.
+    keys in default_kwargs are replaced by existing ones in kwargs
+    """
+    import inspect
+    func_args = inspect.getfullargspec(func).args
+    filtered_kwargs = dict(default_kwargs)
+    filtered_kwargs.update(**kwargs)
+    filtered_kwargs = {k: v for k, v in filtered_kwargs.items() if k in func_args}
+    return filtered_kwargs
+
+
+def get_required_positional_arguments(func):
+    """
+    Get all required positional arguments of a function (those without default values).
+    
+    Returns:
+        list: List of argument names that are required positional arguments
+    """
+    import inspect
+    
+    sig = inspect.signature(func)
+    required_args = []
+    
+    for param_name, param in sig.parameters.items():
+        # Check if it's a positional argument (not *args or **kwargs)
+        if param.kind in (inspect.Parameter.POSITIONAL_ONLY, 
+                         inspect.Parameter.POSITIONAL_OR_KEYWORD):
+            # Check if it has no default value (i.e., it's required)
+            if param.default == inspect.Parameter.empty:
+                required_args.append(param_name)
+    
+    return required_args

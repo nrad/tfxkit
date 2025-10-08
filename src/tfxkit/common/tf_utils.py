@@ -44,6 +44,19 @@ def get_integers_from_string(pattern):
     values = [int(x) for x in re.findall(r"\d+", pattern)]
     return values
 
+def parse_layers_list(layers_list):
+    """
+    Parses a layers list and returns a list of integers.
+    If the input is a string, it is parsed as a string of integers separated by non-integers
+    """
+    if isinstance(layers_list, (list, tuple)):
+        return list(layers_list)
+    elif isinstance(layers_list, str):
+        return get_integers_from_string(layers_list)
+    else:
+        return [layers_list]
+
+
 def define_mlp(
     n_features,
     layers_list,
@@ -83,13 +96,9 @@ def define_mlp(
     # layers_list = (
     #     layers_list if isinstance(layers_list, (list, tuple)) else [layers_list]
     # )
-    if isinstance(layers_list, (list, tuple)):
-        layers_list = list(layers_list)
-    elif isinstance(layers_list, str):
-        layers_list = get_integers_from_string(layers_list)
-    else:
-        layers_list = [layers_list]
 
+    layers_list = parse_layers_list(layers_list)
+    logger.info(f"layers_list: {layers_list}")
     n_layers = len(layers_list)
 
     # Convert single args to lists or validate list lengths

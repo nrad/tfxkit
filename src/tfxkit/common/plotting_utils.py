@@ -181,7 +181,7 @@ def plot_classwise_hist(
                  negative class:\n{htest0}\n\
                  positive class:\n{htest1}")
 
-    hists += [htest0, htest1]
+    hists += [htest1, htest0]
     labels += ["test (pos)", "test (neg)"]
     colors += ["C0", "C1"]
 
@@ -194,7 +194,7 @@ def plot_classwise_hist(
             **pred_kwargs,
         )
 
-        hists += [htrain0, htrain1]
+        hists += [htrain1, htrain0]
         labels += ["train (pos)", "train (neg)"]
         colors += ["C0", "C1"]
 
@@ -286,7 +286,7 @@ def plot_classwise_hist(
         if y_scale == "log":
             if ymin == 0:
                 ymin = 1e-10
-            y_fact = 0.15 * np.log10(ymax / ymin)
+            y_fact = 0.2 * np.log10(ymax / ymin)
     if x_scale:
         ax_main.set_xscale(x_scale)
 
