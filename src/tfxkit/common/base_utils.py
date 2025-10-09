@@ -214,6 +214,12 @@ def read_hdf(
 ## Utility functions
 ##
 
+def unique_name(prefix="tmp", length=None):
+    hsh = uuid.uuid4().hex.replace("-", "")
+    if length:
+        hsh = hsh[:length]
+    return "%s_%s" % (prefix, hsh)
+
 
 def import_function(fn_path, strict=True):
     import importlib
