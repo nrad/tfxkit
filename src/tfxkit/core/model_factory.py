@@ -179,14 +179,14 @@ class ModelFactory:
 
 
 
-    def fit(self, save_path=None):
+    def fit(self, save_path=None, overwrite=None):
         """
         Runs the model training and ensures automatic saving of the model and weights
         after the training.
 
         Args:
             save_path (str or Path, optional): Where to save the trained model.
-                If None, the path from `config.save_dir` will be used.
+                If None, the path from `config.info.save_dir` will be used.
 
         Returns:
             History: The Keras History object from `model.fit()`.
@@ -194,7 +194,7 @@ class ModelFactory:
         TODO: pass on **kwargs to trainer.fit and save the updated config file
         """
         history = self.trainer.fit()
-        self.builder.save_model(save_path)
+        self.builder.save_model(save_path, overwrite=overwrite)
         return history
 
     def __getattr__(self, name):

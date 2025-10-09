@@ -17,8 +17,11 @@ class Plotter:
         self.data = data_manager
         self.trainer = trainer
         self.plot_config = self.config.get("plotter", {})
-        self.plots_path = self.plot_config.get(
-            "plots_path", self.config.get("save_dir", None)
+
+    @property
+    def plots_path(self):
+        return self.plot_config.get(
+            "plots_path", os.path.join(self.config.info.save_dir, self.config.info.model_name)
         )
         # self.weight_column = self.plot_config.get("weight_column", None)
         # self.weight_column_train = self.plot_config.get("weight_column_train", None)
@@ -55,12 +58,14 @@ class Plotter:
             return func
 
     def resolve_plot_path(self, plot_name, plot_path=None):
-        plot_path = plot_path if plot_path else self.plots_path
-        if not plot_path:
+        logger.info(f"Resolving plot path: {plot_name}, {plot_path}, {self.plots_path}")
+        plot_path_ = plot_path if plot_path else self.plots_path
+        if not plot_path_:
             return None
         if plot_name:
-            plot_path = os.path.join(plot_path, plot_name)
-        return plot_path
+            plot_path_ = os.path.join(plot_path_, plot_name)
+        logger.info(f"Resolved plot path: {plot_path_}")
+        return plot_path_
 
     def parse_plotter_func_kwargs(self, func_config):
         kwargs = (
@@ -190,9 +195,9 @@ class Plotter:
                 pred=df[variable],
                 **kwargs[tt],
             )
+
         if not plot_path is False:
-            plot_path = self.resolve_plot_path("roc_curve", plot_path)
-            self.save_fig(fig_ax[0], plot_path)
+            self.save_fig(fig_ax[0], plot_name="roc_curve", plot_path=plot_path)
         return output
 
     def run_sequence(self):

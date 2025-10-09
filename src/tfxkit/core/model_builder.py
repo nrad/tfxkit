@@ -41,15 +41,6 @@ class ModelBuilder:
         self.config = config
         self.model_config = self.config.model
         self.optimizer_config = self.config.optimizer
-        # self.model_parameters = OmegaConf.to_container(
-        #     self.model_config.parameters, resolve=True
-        # )
-        # self.optimizer_parameters = OmegaConf.to_container(
-        #     self.optimizer_config.parameters, resolve=True
-        # )
-
-        # self.loss = self.optimizer_config.loss
-        # self.metrics = list(self.optimizer_config.metrics)
 
         self.data_config = self.config.data
         self.features = self.data_config.features
@@ -57,13 +48,27 @@ class ModelBuilder:
         self.labels = self.data_config.labels
         self.n_labels = len(self.labels)
 
-        self.save_dir = self.config.save_dir
-        self.model_path = os.path.join(self.save_dir, "model.keras")
-
         if os.path.isfile(self.model_path) and self.model_config.reload_model:
             self.load_model()
         else:
             self.define_model()
+
+    @property
+    def save_dir(self):
+        return self.config.info.save_dir
+
+    @property
+    def model_name(self):
+        return self.config.info.model_name
+
+    @property
+    def model_dir(self):
+        return os.path.join(self.save_dir, self.model_name)
+
+    @property
+    def model_path(self):
+        return os.path.join(self.model_dir, "model.keras")
+
 
     def _check_model_consistency_with_config(self):
         """
@@ -179,7 +184,7 @@ class ModelBuilder:
         if os.path.isfile(path) and not overwrite:
                 logger.warning(f"Model file {path} already exists and overwrite is set to False. Not saving.")
                 raise FileExistsError(f"File {path} already exists and overwrite is set to {overwrite}")
-            
+        os.makedirs(os.path.dirname(path), exist_ok=True)
         self.model.save(path, overwrite=overwrite)
         logger.info(f"Model saved successfully to {path}")    
 
