@@ -126,6 +126,7 @@ def plot_classwise_hist(
     range=(-0.1, 1.1),
     comparison="pull",
     plot_path=None,
+    query=None,
     **kwargs,
     # y_label="normalized events",
     # y_label_ratio=None,
@@ -169,6 +170,9 @@ def plot_classwise_hist(
         bins=bins,
         range=range,
     )
+    if query:
+        df_test = df_test.query(query)
+
     logger.debug(f"Plotting classwise hist for variable: {variable}")
     logger.debug(f"weight_column: {weight_column}")
     logger.debug(f"using kwargs: {pred_kwargs}")
@@ -186,6 +190,8 @@ def plot_classwise_hist(
     colors += ["C0", "C1"]
 
     if include_train:
+        if query:
+            df_train = df_train.query(query)
         htrain0, htrain1 = make_classwise_hist(
             df_train,
             weights=(

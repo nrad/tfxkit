@@ -57,6 +57,16 @@ class Plotter:
                 raise ImportError(f"Could not locate function '{func_path}'")
             return func
 
+    def run_function(self, func_path, **kwargs):
+        if hasattr(self, func_path):
+            return getattr(self, func_path)(**kwargs)
+        else:
+            func = locate(func_path)
+            if func is None:
+                raise ImportError(f"Could not locate function '{func_path}'")
+            return func(self, **kwargs)
+
+
     def resolve_plot_path(self, plot_name, plot_path=None):
         logger.info(f"Resolving plot path: {plot_name}, {plot_path}, {self.plots_path}")
         plot_path_ = plot_path if plot_path else self.plots_path
@@ -106,7 +116,6 @@ class Plotter:
 
     def plot_predictions(
         self,
-        # df1, df2
         variable="pred",
         bins=50,
         range=(0, 1),
@@ -114,6 +123,7 @@ class Plotter:
         plot_path=None,
         weight_column=None,
         weight_column_train=None,
+        query=None,
         **kwargs,
     ):
 
@@ -137,6 +147,7 @@ class Plotter:
             bins=bins,
             range=range,
             plot_path=plot_path,
+            query=query,
             **kwargs,
         )
         return output
@@ -218,12 +229,9 @@ class Plotter:
                 logger.debug(f"Importing function: {func_path}")
                 kwargs = self.parse_plotter_func_kwargs(func_config)
 
-            func = self.locate_function(func_path)
-            if func is None:
-                raise ImportError(f"Could not locate function '{func_path}'")
 
             logger.info(f"Running plotter func: {name}: {func_path}")
-
-            plot_output = func(**kwargs)
+            logger.info(f"with kwargs: {kwargs}")
+            plot_output = self.run_function(func_path, **kwargs)
             outputs.append((name, plot_output))
         return outputs

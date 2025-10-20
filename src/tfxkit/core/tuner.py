@@ -6,6 +6,8 @@ from tfxkit.common.base_utils import import_function
 from tfxkit.core.model_builder import ModelBuilder
 from pydoc import locate
 
+import os
+
 logger = logging.getLogger(__name__)
 
 
@@ -50,7 +52,11 @@ class HyperTuner:
     def directory(self):
         dir_path = self._config.tuner.tuner.get("parameters", {}).get("directory", None)
         if dir_path is None:
-            dir_path = self._config.get("save_dir", None)
+            save_dir = self._config.info.get("save_dir", None)
+            model_name = self._config.info.get("model_name", None)
+            if model_name is None:
+                raise ValueError("No model name specified. Please set 'info.model_name' in the config.")
+            dir_path = os.path.join(save_dir, model_name, "HPTunning")
         if dir_path is None:
             raise ValueError("No directory specified for tuner results. Please either set \
                              'tuner.tuner.parameters.directory' \or 'save_dir' in the config.")
@@ -156,8 +162,7 @@ def optimizer_tuning(
     config,
     builder,
     data,
-    optimizers=["keras.optimizers.adam", "keras.optimizers.sgd", "rmsprop"],
-    # learning_rates=[1e-2, 1e-3, 1e-4],
+    optimizers=["keras.optimizers.adam", "keras.optimizers.adamw", ],
 ):
     """Tune the optimizer and learning rate."""
 
