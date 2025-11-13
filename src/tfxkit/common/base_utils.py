@@ -98,6 +98,17 @@ def read_csv(file_paths):
     file_paths = [file_paths] if isinstance(file_paths, (str)) else file_paths
     return pd.concat([pd.read_csv(f) for f in file_paths])
 
+def default_reader(file_paths):
+    extensions = list(set([f.split(".")[-1] for f in file_paths]))
+    if len(extensions) > 1:
+        raise ValueError(f"Multiple file types found: {extensions}")
+    extension = extensions[0]
+    if extension in ["hdf5", "h5"]:
+        return read_hdfs(file_paths)
+    elif extension in ["parquet", "pq"]:
+        return pd.read_parquet(file_paths)
+    else:
+        raise ValueError(f"Unsupported file type: {extensions}")
 
 def read_hdfs(file_paths, chunksize=None, **kwargs):
     if chunksize is None:
