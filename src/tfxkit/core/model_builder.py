@@ -100,7 +100,7 @@ class ModelBuilder:
             model_kwargs.update(kwargs)
         model_kwargs.update(
             {
-                "n_features": self.n_features,
+                "features": self.features,
                 "n_labels": self.n_labels,
             }
         )
@@ -161,6 +161,13 @@ class ModelBuilder:
         model.compile(optimizer=optimizer_fn, loss=loss, metrics=metrics)
         return model
 
+    # def build_model(self, model=None, batch_size=None, n_input_features=None):
+    #     """
+    #     Builds the model using the model function returned by the definer property.
+    #     """
+    #     model = self.model if model is None else model
+    #     model.build(input_shape=(batch_size, n_input_features))
+    #     return model
 
     def save_model(self, path, overwrite=None):
 

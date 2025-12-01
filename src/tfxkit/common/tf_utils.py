@@ -7,6 +7,10 @@ import keras
 
 logger = logging.getLogger(__name__)
 
+def set_seeds(seed=999):
+    tf.random.set_seed(seed)
+    np.random.seed(seed)
+    tf.keras.utils.set_random_seed(seed)  # sets seeds for base-python, numpy and tf
 
 def get_weight_column(df, weights=None):
     """
@@ -44,7 +48,7 @@ def get_integers_from_string(pattern):
     values = [int(x) for x in re.findall(r"\d+", pattern)]
     return values
 
-def parse_layers_list(layers_list):
+def _parse_layers_list(layers_list):
     """
     Parses a layers list and returns a list of integers.
     If the input is a string, it is parsed as a string of integers separated by non-integers
@@ -56,9 +60,30 @@ def parse_layers_list(layers_list):
     else:
         return [layers_list]
 
+def _normalize_layers_list(layers_list):
+    """
+    Normalizes a layers list and returns a list of integers.
+    If the input is a string, it is parsed as a string of integers separated by non-integers
+    """
+    layers = layers_list if isinstance(layers_list, list) else [layers_list]
+    try:
+        return [int(layer) for layer in layers]
+    except Exception as e:
+        print(f"Error parsing layers list: {layers}")
+        print(f"Error: {e}")
+        raise e
+
+def parse_layers_list(layers_list):
+    """
+    Parses a layers list and returns a list of integers.
+    If the input is a string, it is parsed as a string of integers separated by non-integers
+    """
+    layers_list = _parse_layers_list(layers_list)
+    return _normalize_layers_list(layers_list)
+
 
 def define_mlp(
-    n_features,
+    features, 
     layers_list,
     hidden_activation="relu",
     n_labels=1,
@@ -69,18 +94,17 @@ def define_mlp(
     kernel_regularizer=None,
     final_activation="sigmoid",
     name=None,
+    sequence_only=False,
     build=True,
     batch_size=None,
-    sequence_only=False,
-
 ):
     """
     Flexible function to define a neural network model with customizable
     layer sizes, hidden_activation, batch norm, dropout, and kernel options.
 
     Args:
-        n_features (int): Number of input features.
         layers_list (list of int): Number of units for each hidden layer.
+        features (list of str): List of feature names.
         hidden_activation (str or list): Activation(s). Single string or list of same length as layers_list.
         n_labels (int): Number of output units (e.g., for classification).
         dropout (float or list/None): Dropout rate(s). Single or list matching layers_list length.
@@ -148,12 +172,24 @@ def define_mlp(
     if sequence_only:
         return sequence
 
-    # Build the model
     model = tf.keras.Sequential(sequence, name=name)
     if build:
+        if isinstance(features, (list, tuple)):
+            n_features = len(features)
+        elif isinstance(features, int):
+            n_features = features
+        else:
+            raise ValueError(f"Invalid features type: {type(features)}")
         model.build(input_shape=(batch_size, n_features))
     return model
 
+
+def build_model(model, batch_size=None, n_input_features=None):
+    """
+    Builds the model based on the input shape and batch_size
+    """
+    model.build(input_shape=(batch_size, n_input_features))
+    return model
 
 ##
 ## Utilities for parsing and processing arguments

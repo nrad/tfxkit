@@ -179,7 +179,7 @@ class ModelFactory:
 
 
 
-    def fit(self, save_path=None, overwrite=None):
+    def fit(self, save_path=None, overwrite=None, verbose=0):
         """
         Runs the model training and ensures automatic saving of the model and weights
         after the training.
@@ -193,7 +193,7 @@ class ModelFactory:
 
         TODO: pass on **kwargs to trainer.fit and save the updated config file
         """
-        history = self.trainer.fit()
+        history = self.trainer.fit(verbose=verbose)
         self.builder.save_model(save_path, overwrite=overwrite)
         return history
 

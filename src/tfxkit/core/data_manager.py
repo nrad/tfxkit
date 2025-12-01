@@ -1,9 +1,11 @@
 import logging
+import inspect
 import pandas as pd
 from tfxkit.common.base_utils import read_hdfs, import_function
 from dataclasses import dataclass, field
 import tfxkit.common.tf_utils as tf_utils
 from importlib import resources
+from functools import partial
 import os
 import glob
 
@@ -48,6 +50,53 @@ class DataManager:
         #     postselection=self.config.get("selection", None),
         # )
         return df
+
+    def _get_xy_maker(self):
+        xy_maker_config = self.data_config.get("xy_maker")
+        if isinstance(xy_maker_config, str):
+            xy_maker_func = import_function(xy_maker_config)
+            logger.info(f"Using xy_maker function: {xy_maker_func.__name__}")
+        elif "function" in xy_maker_config:
+            xy_maker_function_path = xy_maker_config.get("function")
+            xy_maker_func = import_function(xy_maker_function_path)
+            xy_maker_kwargs = xy_maker_config.get("parameters", {})
+            logger.info(f"Using xy_maker function: {xy_maker_func.__name__} with kwargs: {xy_maker_kwargs}")
+            xy_maker_func = partial(xy_maker_func, **xy_maker_kwargs)
+        else:
+            raise ValueError(f"Invalid xy_maker configuration: {xy_maker_config}")
+        return self._attach_model_parameters_if_supported(xy_maker_func)
+
+    def _attach_model_parameters_if_supported(self, xy_maker_func):
+        """
+        If the xy_maker callable accepts a `model_parameters` keyword argument,
+        partially bind it to the model config so specs only need to be defined once.
+        """
+
+        model_params = getattr(getattr(self.config, "model", None), "parameters", None)
+        if model_params is None:
+            return xy_maker_func
+
+        try:
+            signature = inspect.signature(xy_maker_func)
+        except (TypeError, ValueError):
+            return xy_maker_func
+
+        if "model_parameters" not in signature.parameters:
+            return xy_maker_func
+
+        # Avoid rebinding if already provided via partial keywords
+        existing_kwargs = getattr(xy_maker_func, "keywords", {}) or {}
+        if "model_parameters" in existing_kwargs:
+            return xy_maker_func
+
+        logger.info("Passing model.parameters to xy_maker via partial binding")
+        logger.info(f"Model parameters: {model_params}")
+        
+        return partial(xy_maker_func, model_parameters=model_params)
+
+    @property
+    def xy_maker(self):
+        return self._get_xy_maker()
 
     @classmethod
     def __add_cached_df(cls):
@@ -108,8 +157,8 @@ class DataManager:
         if hasattr(self, "_X_train"):
             return
 
-        xy_maker = import_function(self.data_config.xy_maker)
-        logger.debug(f"Using xy_maker function: {xy_maker.__name__}")
+        # xy_maker = import_function(self.data_config.xy_maker)
+        # logger.debug(f"Using xy_maker function: {xy_maker.__name__}")
 
         weight_column_train = self.data_config.get("weights_column", None)
         weight_column_test = weight_column_train
@@ -132,13 +181,13 @@ class DataManager:
                 Training: {weight_column_train}\n\t\
                 Test:     {weight_column_test}"
         )
-        X_train, y_train, sample_weight_train = xy_maker(
+        X_train, y_train, sample_weight_train = self.xy_maker(
             self.df_train,
             self.data_config.features,
             self.data_config.labels,
             weight_column_train,
         )
-        X_test, y_test, sample_weight_test = xy_maker(
+        X_test, y_test, sample_weight_test = self.xy_maker(
             self.df_test,
             self.data_config.features,
             self.data_config.labels,
