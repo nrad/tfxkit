@@ -1,5 +1,6 @@
 import logging
 import sys
+import os
 from hydra import initialize_config_module, compose, initialize_config_dir
 from omegaconf import OmegaConf, DictConfig
 from typing import Optional
@@ -41,6 +42,24 @@ class ConfigLoader:
                 config_dir,
                 overrides=overrides,
             )
+
+    @property
+    def save_dir(self):
+        return self.config.info.save_dir
+
+    @property
+    def model_name(self):
+        return self.config.info.model_name
+
+    @property
+    def model_dir(self):
+        return os.path.join(self.save_dir, self.model_name)
+
+    @property
+    def config_path(self):
+        return os.path.join(self.model_dir, "config.yaml")
+
+
 
     def _called_from_cli(self):
         return sys.argv[0].endswith("cli.py") or sys.argv[0].endswith("cli")
@@ -95,12 +114,17 @@ class ConfigLoader:
         logger.info("Configuration:")
         logger.info("\n" + OmegaConf.to_yaml(self.config))
 
-    def save_config(self, file_path: str, config=None):
+    def save_config(self, file_path: str = None, config=None):
         """Save the configuration to a YAML file."""
         config = config if config else self.config
+        file_path = file_path if file_path else self.config_path
+        if not os.path.isdir(os.path.dirname(file_path)):
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
         with open(file_path, "w") as file:
             OmegaConf.save(config, file)
         logger.info(f"Configuration saved to {file_path}")
+
+
 
 
 if __name__ == "__main__":
