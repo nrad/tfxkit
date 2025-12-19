@@ -6,7 +6,7 @@ import logging
 import keras
 from omegaconf import OmegaConf
 from tfxkit.common.base_utils import import_function, get_required_positional_arguments
-
+from tfxkit.common.tf_utils import set_seeds
 logger = logging.getLogger(__name__)
 
 
@@ -48,10 +48,21 @@ class ModelBuilder:
         self.labels = self.data_config.labels
         self.n_labels = len(self.labels)
 
+        self.set_random_seed()
+
+        model_debugger = self.model_config.get("debug", False)
+        if model_debugger:
+            return
+        
+        self.define_model()
         if os.path.isfile(self.model_path) and self.model_config.reload_model:
-            self.load_model()
-        else:
-            self.define_model()
+            logger.info(f"Loading model weights from {self.model_path}")
+            try:
+                self.model.load_weights(self.model_path)
+            except Exception as e:
+                logger.error(f"Failed to load model weights from {self.model_path}: {e}")
+                raise e
+
 
     @property
     def save_dir(self):
@@ -100,13 +111,15 @@ class ModelBuilder:
             model_kwargs.update(kwargs)
         model_kwargs.update(
             {
+                # "n_features": self.n_features,
                 "features": self.features,
                 "n_labels": self.n_labels,
             }
         )
 
         required_pos_args = get_required_positional_arguments(self.definer)
-        extra_args = {'features': self.features, 'labels': self.labels}
+        logger.info(f"Required positional arguments in {self.definer.__name__}: {required_pos_args}")
+        extra_args = {'features': self.features, 'labels': self.labels, }
         for arg in required_pos_args:
             if arg not in model_kwargs:
                 if arg in extra_args:
@@ -121,6 +134,11 @@ class ModelBuilder:
         if attach_to_builder:
             self.model = model
         return model
+
+    def set_random_seed(self, seed=None):
+        seed = seed if seed is not None else self.model_config.get("random_seed", 999)
+        logger.info(f"Setting random seed to {seed}")
+        set_seeds(seed)
 
     def summary(self):
         """Prints the model summary."""
