@@ -55,7 +55,7 @@ class ModelFactory:
         # if model is None:
         self.__init_model_builder(config=config)
         builder = self.builder
-        model = builder.model
+
         self.__init_trainer(config=config, builder=builder, data_manager=data_manager)
         self.__init_evaluator(config=config, builder=builder, data_manager=data_manager)
         self.__init_plotter(
@@ -177,9 +177,7 @@ class ModelFactory:
         self.attach_predictions()
         self.plotter.run_sequence()
 
-
-
-    def fit(self, save_path=None, overwrite=None, verbose=0):
+    def fit(self, save_path=None, overwrite=None, verbose=0, **kwargs):
         """
         Runs the model training and ensures automatic saving of the model and weights
         after the training.
@@ -193,7 +191,7 @@ class ModelFactory:
 
         TODO: pass on **kwargs to trainer.fit and save the updated config file
         """
-        history = self.trainer.fit(verbose=verbose)
+        history = self.trainer.fit(verbose=verbose, **kwargs)
         self.builder.save_model(save_path, overwrite=overwrite)
         return history
 

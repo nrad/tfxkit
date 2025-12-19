@@ -2,6 +2,7 @@
 function: "tfxkit.common.tf_utils.define_mlp"
 reload_model: true
 overwrite: false
+seed: 999
 parameters:
   hidden_activation: relu
   layers_list: [64, 32, 16]
