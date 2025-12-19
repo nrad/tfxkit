@@ -130,19 +130,10 @@ class DataManager:
                 logger.debug(
                     f"Accessing {df_attr_name} with files_key: {test_train}_files"
                 )
-
                 files_key = f"{test_train}_files"
                 files = self.data_config[files_key]
-                # if isinstance(files, str):
-                #     if os.path.isfile(files):
-                #         files = [files]
-                #     if os.path.isdir(files):
-                #         files = glob.glob(files+"/{test_train}.*")
-                #     if "/"
-                #     elif files.startswith("tfxkit"):
-                #         files
 
-                logger.debug(f"?? Loading {df_attr_name} from files: {files}")
+                logger.debug(f"Loading {df_attr_name} from files: {files}")
                 if not hasattr(self, f"_{df_attr_name}"):
                     attr = self._load_df(files)
                     # assert False, f"{df_attr_name} is not set correctly {test_train}"
@@ -151,6 +142,14 @@ class DataManager:
 
             logger.debug(f"Adding property df_{attr_name} to DataManager")
             setattr(cls, f"df_{test_train}", property(func))
+
+    def remove_cached_df(self):
+        for test_train in ["test", "train"]:
+            df_attr_name = f"df_{test_train}"
+            if hasattr(self, f"_{df_attr_name}"):
+                delattr(self, f"_{df_attr_name}")
+                logger.debug(f"Removed cached {df_attr_name}")
+
 
     def prep_Xy(self):
 
