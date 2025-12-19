@@ -3,7 +3,8 @@ import pandas as pd
 import numpy as np
 import logging
 import keras
-
+from collections.abc import Sequence
+from tfxkit.common.base_utils import import_function, combine_weight_columns
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +26,43 @@ def get_weight_column(df, weights=None):
         return df[weights].product(axis=1)
     else:
         raise ValueError(f"Invalid weights type: {type(weights)}")
+
+def add_balanced_weights(
+    df,
+    label="Level3",
+    weight_col="weights",
+    balanced_weight_col="balanced_weights",
+    factor=None,
+    weight_func=None,
+):
+    """
+    Add weights based on the class <label> for balancing test/train in the dataframe
+
+    """
+    cls0 = df[label] == 0
+    cls1 = df[label] == 1
+
+    weights_cls0 = combine_weight_columns(df[cls0], weight_col)
+    weights_cls1 = combine_weight_columns(df[cls1], weight_col)
+
+    if weight_func:
+        if not callable(weight_func):
+            raise ValueError(f"weight_func ({weight_func}) should be callable")
+        weights_cls0 = weight_func(weights_cls0)
+        weights_cls1 = weight_func(weights_cls1)
+
+
+    if factor is None:
+        factor = len(df)
+    
+    factor /= weights_cls0.sum()
+
+    df.loc[cls1, balanced_weight_col] = (weights_cls1 * weights_cls0.sum()/weights_cls1.sum() ) * factor
+    df.loc[cls0, balanced_weight_col] = weights_cls0 * factor
+    df[balanced_weight_col] = df[balanced_weight_col].astype('float64')
+
+    return df
+
 
 
 def xy_maker(df, features, labels, weight=None):
@@ -53,7 +91,7 @@ def _parse_layers_list(layers_list):
     Parses a layers list and returns a list of integers.
     If the input is a string, it is parsed as a string of integers separated by non-integers
     """
-    if isinstance(layers_list, (list, tuple)):
+    if isinstance(layers_list, Sequence) and not isinstance(layers_list, str):
         return list(layers_list)
     elif isinstance(layers_list, str):
         return get_integers_from_string(layers_list)
@@ -65,12 +103,12 @@ def _normalize_layers_list(layers_list):
     Normalizes a layers list and returns a list of integers.
     If the input is a string, it is parsed as a string of integers separated by non-integers
     """
-    layers = layers_list if isinstance(layers_list, list) else [layers_list]
+    layers = layers_list if isinstance(layers_list, Sequence) else [layers_list]
     try:
         return [int(layer) for layer in layers]
     except Exception as e:
-        print(f"Error parsing layers list: {layers}")
-        print(f"Error: {e}")
+        logger.error(f"Error parsing layers list: {layers}")
+        logger.error(f"Error: {e}")
         raise e
 
 def parse_layers_list(layers_list):
@@ -81,6 +119,17 @@ def parse_layers_list(layers_list):
     layers_list = _parse_layers_list(layers_list)
     return _normalize_layers_list(layers_list)
 
+
+def default_kernel_initializers(activation=None):
+    if activation is not None:
+        if activation in ['relu', 'leaky_relu']:
+            return 'he_normal'
+        elif activation in ['sigmoid', 'tanh', 'linear']:
+            return 'glorot_uniform'
+        else:
+            return None
+    else:
+        return None
 
 def define_mlp(
     features, 
@@ -97,6 +146,7 @@ def define_mlp(
     sequence_only=False,
     build=True,
     batch_size=None,
+    layers_prefix=None,
 ):
     """
     Flexible function to define a neural network model with customizable
@@ -132,7 +182,9 @@ def define_mlp(
     batch_norm_list = broadcast_argument_to_layers(
         batch_norm_hidden, n_layers, default=False, fill_empty=True
     )
+    # kernel_initializer = 
     init_list = broadcast_argument_to_layers(kernel_initializer, n_layers, default=None)
+    # init_list = [default_kernel_initializers(activation) for activation in activations_list]
     reg_list = broadcast_argument_to_layers(kernel_regularizer, n_layers, default=None)
 
     sequence = []
@@ -148,7 +200,7 @@ def define_mlp(
             "activation": activations_list[i],
             "kernel_initializer": init_list[i],
             "kernel_regularizer": parse_regularizer(reg_list[i]),
-            "name": f"Dense_{i}_{layers_list[i]}_{activations_list[i]}",
+            "name": f"Dense{ ('_' + layers_prefix) if layers_prefix else ''}_{i}_{layers_list[i]}_{activations_list[i]}",
         }
         sequence.append(keras.layers.Dense(layers_list[i], **dense_kwargs))
         if batch_norm_list[i]:
@@ -174,7 +226,7 @@ def define_mlp(
 
     model = tf.keras.Sequential(sequence, name=name)
     if build:
-        if isinstance(features, (list, tuple)):
+        if isinstance(features, Sequence):
             n_features = len(features)
         elif isinstance(features, int):
             n_features = features
@@ -203,7 +255,7 @@ def broadcast_argument_to_layers(arg, n_layers, default=None, fill_empty=True):
     Otherwise, broadcast the single value to all layers.
     """
     
-    if isinstance(arg, (list, tuple)):
+    if isinstance(arg, Sequence) and not isinstance(arg, str):
         if len(arg) != n_layers:
             raise ValueError(
                 f"Length of argument {arg} must match the number of layers ({n_layers})."
