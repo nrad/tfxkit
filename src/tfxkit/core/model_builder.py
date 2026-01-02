@@ -173,10 +173,22 @@ class ModelBuilder:
         else:
             optimizer_fn = optimizer_fn_name
 
+        if "." in loss:
+            loss_fn = import_function(loss)
+            logger.info(f"Imported loss function: {loss_fn.__name__}")
+            loss_kwargs = self.optimizer_config.get("loss_kwargs", {})
+            if loss_kwargs:
+                logger.info(f"Updating loss function parameters with: {loss_kwargs}")
+                # loss_fn = loss_fn.from_config(loss_kwargs)
+                loss_fn = loss_fn(**loss_kwargs)
+        else:
+            loss_fn = loss
+
+
         logger.info(
-            f"Compiling model with optimizer={optimizer_fn}, loss={loss}, metrics={metrics}"
+            f"Compiling model with optimizer={optimizer_fn}, loss={loss_fn}, metrics={metrics}"
         )
-        model.compile(optimizer=optimizer_fn, loss=loss, metrics=metrics)
+        model.compile(optimizer=optimizer_fn, loss=loss_fn, metrics=metrics)
         return model
 
     # def build_model(self, model=None, batch_size=None, n_input_features=None):
