@@ -86,10 +86,14 @@ class Plotter:
         return kwargs
 
     def resolve_weight_column(self, kwargs):
-        if self.weight_column and "weight_column" not in kwargs:
+        logger.info(f"Resolving weight column: kwargs={kwargs}")
+        logger.info(f"weight_column: {self.weight_column = }")
+        logger.info(f"weight_column_train: {self.weight_column_train = }")
+        if self.weight_column and not kwargs.get("weight_column"):
             kwargs["weight_column"] = self.weight_column
-        if self.weight_column_train and "weight_column_train" not in kwargs:
+        if self.weight_column_train and not kwargs.get("weight_column_train"):
             kwargs["weight_column_train"] = self.weight_column_train
+        logger.info(f"Resolved weight column: kwargs={kwargs}")
         return kwargs
 
     def save_fig(self, fig, plot_name=None, plot_path=None, **kwargs):
@@ -129,11 +133,13 @@ class Plotter:
 
         plot_path = self.resolve_plot_path(plot_name, plot_path)
 
-        kwargs = self.resolve_weight_column(kwargs)
+        weight_column_kwargs = self.resolve_weight_column(dict(weight_column=weight_column, 
+                                                          weight_column_train=weight_column_train))
+        kwargs.update(weight_column_kwargs)
         target_label = self.data.data_config["labels"][0]
         logger.info(f"Plotting classwise hist for variable: {variable}")
-        logger.info(f"weight_column: {weight_column}")
-        logger.info(f"weight_column_train: {weight_column_train}")
+        logger.info(f"weight_column: {weight_column_kwargs['weight_column']}")
+        logger.info(f"weight_column_train: {weight_column_kwargs['weight_column_train']}")
         logger.info(f"using kwargs: {kwargs}")
         output = pu.plot_classwise_hist(
             self.data.df_test,
