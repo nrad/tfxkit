@@ -35,20 +35,30 @@ This example uses a config with the `load_breast_cancer` dataset, builds a basic
 But first setup and download the example dataset and config file:
 
 ```bash
-tfxkit-setup-example
+tfxkit-setup-example info.example_dir=./example_project/ 
 ```
 
 
 The script will create the following items:
- - train file: `$TFXKDIR/examples/train.csv`
- - test file: `$TFXKDIR/examples/test.csv`
- - default config: `$TFXKDIR/examples/default_config.yaml`
- - primary config: `$TFXKDIR/examples/example.yaml`
+ - train file: `./example_project/train.csv`
+ - test file: `./example_project/ test.csv`
+ - default config: `./example_project/default_config.yaml`
+ - primary config: `./example_project/config.yaml`
 
-The primary config (`example.yaml`) builds on top of the `default_config.yaml` by importing it and overriding specific fields such as model parameters, dataset paths, or any other fields which is specified. Then follow the suggested command for running the exmample config file. It should look something like this:
+The primary config (`config.yaml`) builds on top of the `default_config.yaml` by importing it and overriding specific fields such as model parameters, dataset paths, or any other fields which is specified. Then follow the suggested command for running the exmample config file. It should look something like this:
 
 ```bash
-tfxkit --config-name=example --config-path=$TFXKDIR/examples
+tfxkit --config-name=config --config-path=/absolute/path/to/example_project/
+```
+
+And this is where the customization fun with the Hydra can start. 
+All the parameters in the config file can also be modified from the command line:
+
+```bash
+tfxkit --config-name=config --config-path=/absolute/path/to/example_project/ \
+       info.model_name=new_name
+       model.parameters.layers_list=[10,100,20]
+       optimizer.function=adamw
 ```
 
 
