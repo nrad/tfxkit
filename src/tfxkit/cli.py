@@ -44,12 +44,13 @@ def setup_example(cfg: DictConfig = None):
 
 
 def run_train(mf, cfg):
-    mf.history = mf.trainer.fit(
-        validation_split=cfg.training.validation_split,
-        batch_size=cfg.training.batch_size,
-        epochs=cfg.training.epochs,
-        sample_weight=mf.data.sample_weight_train,
-    )
+    # mf.history = mf.trainer.fit(
+    #     validation_split=cfg.training.validation_split,
+    #     batch_size=cfg.training.batch_size,
+    #     epochs=cfg.training.epochs,
+    #     sample_weight=mf.data.sample_weight_train,
+    # )
+    mf.fit()
     return mf
 
 
