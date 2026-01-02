@@ -319,7 +319,7 @@ def plot_roc(fig_ax=None, truth=None, pred=None, weights=None, **plot_kwargs):
     fig, ax = fig_ax if fig_ax else plt.subplots()
 
     fpr, tpr, thresholds = sklearn.metrics.roc_curve(truth, pred, sample_weight=weights)
-    area = np.trapz(tpr, fpr)
+    area = np.trapazoid(tpr, fpr)
     area_label = "AUC=%s" % round(area, 3)
 
     if "label" in plot_kwargs:
