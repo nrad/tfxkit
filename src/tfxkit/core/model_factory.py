@@ -241,7 +241,7 @@ class ModelFactory:
     def model(self):
         return self.builder.model
 
-    def clone_factory(self, *, config=None, overrides=None):
+    def clone_factory(self, *, config=None, overrides=None, data_manager=None):
         """
         Create a new ModelFactory instance with an updated configuration.
         Args:
@@ -256,7 +256,7 @@ class ModelFactory:
             from omegaconf import OmegaConf
             override_conf = OmegaConf.from_dotlist(overrides)
             new_config = OmegaConf.merge(new_config, override_conf)
-        return ModelFactory(config=new_config)
+        return ModelFactory(config=new_config, data_manager=data_manager)
 
     # def NewFactory(self, config=None, overrides=None):
     #     new_config =
