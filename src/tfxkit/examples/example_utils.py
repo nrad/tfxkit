@@ -44,7 +44,7 @@ info:
   save_dir: {example_dir}
 
 data:
-  file_reader: tfxkit.common.base_utils.read_csv
+  file_reader: tfxkit.common.base_utils.default_reader
   features:
     - mean radius
     - mean texture

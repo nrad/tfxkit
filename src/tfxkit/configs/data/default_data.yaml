@@ -1,4 +1,4 @@
-file_reader: "tfxkit.common.base_utils.read_hdfs"
+file_reader: "tfxkit.common.base_utils.default_reader"
 test_files:
   - /Users/nrad/Work/data/hdf/Cscd_v0.0.12/20904/test_train_nocombineskimmed/test_small.hdf5
 train_files:

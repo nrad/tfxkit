@@ -107,6 +107,8 @@ def default_reader(file_paths):
         return read_hdfs(file_paths)
     elif extension in ["parquet", "pq"]:
         return pd.read_parquet(file_paths)
+    elif extension in ["csv"]:
+        return read_csv(file_paths)
     else:
         raise ValueError(f"Unsupported file type: {extensions}")
 
