@@ -1,4 +1,4 @@
-doc: |
+docs: |
   Configuration file for TFXKit experiments.
 
   This file uses the Hydra framework to manage configurations.

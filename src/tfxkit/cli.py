@@ -3,12 +3,10 @@ import hydra
 from omegaconf import DictConfig
 from tfxkit.core.logger import setup_logging
 from tfxkit.core.model_factory import ModelFactory
-from tfxkit.core.config_loader import ConfigLoader
-
-import sys
 
 DEFAULT_CONFIG_NAME = "quickstart"
 DEFAULT_CONFIG_PATH = "configs"
+VERSION_BASE = None
 
 
 def get_args():
@@ -35,17 +33,13 @@ def prep_model_factory(cfg):
     return mf
 
 
-# def download_example_data():
-#     from tfxkit.common import tf_utils
-
-
-#     tf_utils.download_example_data()
-@hydra.main(
-    config_path=DEFAULT_CONFIG_PATH, config_name=DEFAULT_CONFIG_NAME, version_base=None
+@hydra.main(config_path=DEFAULT_CONFIG_PATH, 
+            config_name=DEFAULT_CONFIG_NAME,
+            version_base=VERSION_BASE
 )
 def setup_example(cfg: DictConfig = None):
     from tfxkit.examples.example_utils import setup_example
-
+    # example_dir = cfg.get("example_dir", None)
     setup_example(default_cfg=cfg)
 
 
@@ -56,7 +50,6 @@ def run_train(mf, cfg):
         epochs=cfg.training.epochs,
         sample_weight=mf.data.sample_weight_train,
     )
-    # mf.evaluator.add_test_train_preds()
     return mf
 
 
@@ -78,12 +71,11 @@ def run_hyper_tuning(mf, cfg):
     return mf
 
 
-# @hydra.main(
-#     config_path=DEFAULT_CONFIG_PATH, config_name=DEFAULT_CONFIG_NAME, version_base=None
-# )
-
-
-@hydra.main(config_path=DEFAULT_CONFIG_PATH, config_name=DEFAULT_CONFIG_NAME)
+@hydra.main(
+    config_path=DEFAULT_CONFIG_PATH,
+    config_name=DEFAULT_CONFIG_NAME,
+    version_base=VERSION_BASE,
+)
 def main(cfg: DictConfig) -> ModelFactory:
     print("🚀 TFxKit initalizing...")
     setup_logging(level=cfg.logging.level)
@@ -107,7 +99,9 @@ def main(cfg: DictConfig) -> ModelFactory:
 
 
 @hydra.main(
-    config_path=DEFAULT_CONFIG_PATH, config_name=DEFAULT_CONFIG_NAME, version_base=None
+    config_path=DEFAULT_CONFIG_PATH,
+    config_name=DEFAULT_CONFIG_NAME,
+    version_base=VERSION_BASE,
 )
 def train_entry(cfg: DictConfig) -> None:
     print("🚀 TFxKit training...")
@@ -119,7 +113,7 @@ def train_entry(cfg: DictConfig) -> None:
 # @hydra.main(
 #     config_path=DEFAULT_CONFIG_PATH, config_name=DEFAULT_CONFIG_NAME, version_base=None
 # )
-@hydra.main(config_path=None, version_base=None)
+@hydra.main(config_path=None, version_base=VERSION_BASE)
 def tune_entry(cfg: DictConfig) -> None:
     print("🚀 TFxKit hyperparameter tuning...")
     setup_logging(level=cfg.logging.level)

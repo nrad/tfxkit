@@ -1,16 +1,19 @@
-# examples/configs/quickstart.yaml
+
 docs: |
   Quickstart configuration for TFXKit experiments.
   This is example configuation based on the breast cancer dataset of sklearn.
   It includes a simple model architecture, basic data settings, and a short training duration.
   You can modify this configuration to suit your specific needs.
+  The default values are taken from the default_config.yaml file, and the values here are overrides.
 
 defaults:
-  - config
+  - default_config
+  - _self_
 
 info:
-  example_dir: null # just for seting up the example
-  
+  model_name: example_model
+  save_dir: example_save_dir
+
 data:
   file_reader: tfxkit.common.base_utils.read_csv
   features:
@@ -21,8 +24,8 @@ data:
     - mean smoothness
   labels: ["target"]
 
-  train_files: src/tfxkit/examples/train.csv
-  test_files: src/tfxkit/examples/test.csv
+  train_files: /Users/nrad/Work/tfxkit/src/tfxkit/examples/train.csv
+  test_files: /Users/nrad/Work/tfxkit/src/tfxkit/examples/test.csv
   train_weights_column: null
 
 model:
@@ -39,6 +42,9 @@ training:
   batch_size: 32
   validation_split: 0.2
 
+plotter:
+  plots_path: null # will be set to info.save_dir/info.model_name/plots
+
 tuner:
   functions:
     generic_tuning:
@@ -47,6 +53,14 @@ tuner:
         model.parameters.hidden_activation: ["relu", "tanh"]
         optimizer.function: ["keras.optimizers.Adam", "keras.optimizers.AdamW"]
         optimizer.parameters.learning_rate: [0.001, 0.0001]
-        #kernel_initializer:
         optimizer.parameters.weight_decay: [0.01, 0.001]
         model.parameters.dropout: [0.2, 0.5, 0.8]
+
+  tuner:
+    function: keras_tuner.BayesianOptimization
+    parameters:
+        alpha: 0.0001
+        beta: 2.6
+        directory: tfxkit_results/HPTunning/
+
+
