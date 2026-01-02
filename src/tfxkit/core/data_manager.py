@@ -31,7 +31,7 @@ class DataManager:
         self.config = config
         self.data_config = self.config.data
         # self.sample_weight_column = self.data_config.get("sample_weight", None)
-        self.__add_cached_df()
+        self._add_cached_df()
 
     def get_file_reader(self):
         """Dynamically import and return the file reader function."""
@@ -99,7 +99,7 @@ class DataManager:
         return self._get_xy_maker()
 
     @classmethod
-    def __add_cached_df(cls):
+    def _add_cached_df(cls):
         """
         dynamically add properties by caching the values
         using the appropriate functions
