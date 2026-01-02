@@ -51,9 +51,9 @@ The primary config (`config.yaml`) builds on top of the `default_config.yaml` by
 tfxkit --config-name=config --config-path=/absolute/path/to/example_project/
 ```
 
-And this is where the customization fun with the Hydra can start. 
-All the parameters in the config file can also be modified from the command line.
-For example you can add command-line arguments such as the following to the command above:
+Now you can start customizing your experiment directly from the command line using Hydra options!
+Every parameter in the configuration files can be overridden or set via command-line arguments.
+For example, you might modify or add parameters directly in your run command like so:
 
 ```bash
        info.model_name=new_name
