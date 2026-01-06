@@ -46,6 +46,8 @@ class ModelBuilder:
         self.features = self.data_config.features
         self.n_features = len(self.features)
         self.labels = self.data_config.labels
+        if isinstance(self.labels, str):
+            self.labels = [self.labels]
         self.n_labels = len(self.labels)
 
         self.set_random_seed()
