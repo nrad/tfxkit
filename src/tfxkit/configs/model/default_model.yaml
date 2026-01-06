@@ -1,7 +1,7 @@
 
 function: "tfxkit.common.tf_utils.define_mlp"
 reload_model: true
-overwrite: false
+overwrite: true
 seed: 999
 parameters:
   hidden_activation: relu
