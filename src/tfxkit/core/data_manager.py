@@ -30,25 +30,23 @@ class DataManager:
     def __init__(self, config):
         self.config = config
         self.data_config = self.config.data
+        self.selection = self.data_config.get("selection", None)
         # self.sample_weight_column = self.data_config.get("sample_weight", None)
         self._add_cached_df()
 
-    def get_file_reader(self):
+    @property
+    def file_reader(self):
         """Dynamically import and return the file reader function."""
-        file_reader = import_function(self.data_config.file_reader)
-        return file_reader
+        return import_function(self.data_config.file_reader)
 
     def _load_df(self, files=[]):
         """Load raw data into pandas DataFrames from HDF5 files."""
 
         files = [files] if isinstance(files, str) else files
 
-        file_reader = self.get_file_reader()
-        df = file_reader(files)
-        # df = read_hdfs(
-        #     files,
-        #     postselection=self.config.get("selection", None),
-        # )
+        df = self.file_reader(files)
+        if self.selection:
+            df = df.query(self.selection)
         return df
 
     def _get_xy_maker(self):
